@@ -55,13 +55,15 @@ export default function About() {
         </div>
 
         <div className="lg:col-span-3 grid sm:grid-cols-1 gap-4">
-          {focusAreas.map((area) => (
+          {focusAreas.map((area) => {
+            const Icon = area.icon;
+            return (
             <div
               key={area.title}
               className="panel rounded-md p-5 flex gap-4 items-start"
             >
               <div className="shrink-0 w-9 h-9 rounded-sm bg-accent/10 border border-accent-dim/40 flex items-center justify-center">
-                <area.icon size={17} className="text-accent" />
+                <Icon size={17} className="text-accent" />
               </div>
               <div>
                 <h3 className="font-semibold text-text font-mono text-sm">
@@ -72,7 +74,8 @@ export default function About() {
                 </p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -1,29 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { profile } from "@/data/content";
 import TerminalWindow from "./TerminalWindow";
 import ThreatFeed from "./ThreatFeed";
 import { ArrowDown, FileDown } from "lucide-react";
-
-const LINES = [
-  { prompt: "whoami", output: profile.name },
-  { prompt: "cat role.txt", output: profile.role },
-  { prompt: "cat mission.txt", output: profile.tagline },
-];
 
 export default function Hero() {
   const [visibleLines, setVisibleLines] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [done, setDone] = useState(false);
 
+  const LINES = useMemo(() => [
+    { prompt: "whoami", output: profile.name },
+    { prompt: "cat role.txt", output: profile.role },
+    { prompt: "cat mission.txt", output: profile.tagline },
+  ], []);
+
   useEffect(() => {
     if (visibleLines >= LINES.length) {
       setDone(true);
       return;
     }
+    
     const current = LINES[visibleLines];
     const full = `${current.prompt}`;
+    
     if (charCount < full.length) {
       const t = setTimeout(() => setCharCount((c) => c + 1), 28);
       return () => clearTimeout(t);
@@ -34,7 +36,7 @@ export default function Hero() {
       }, 350);
       return () => clearTimeout(t);
     }
-  }, [charCount, visibleLines]);
+  }, [charCount, visibleLines, LINES.length]);
 
   return (
     <section className="relative overflow-hidden">

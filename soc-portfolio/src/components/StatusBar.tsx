@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 
 export default function StatusBar() {
+  const [mounted, setMounted] = useState(false);
   const [time, setTime] = useState<string>("");
 
   useEffect(() => {
+    setMounted(true);
+    
     const update = () => {
       const now = new Date();
       setTime(
@@ -16,10 +19,13 @@ export default function StatusBar() {
         })
       );
     };
+    
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="w-full border-b border-line bg-black/40 backdrop-blur text-[11px] sm:text-xs font-mono">
