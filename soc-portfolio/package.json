@@ -9,11 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@fontsource/ibm-plex-sans": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.24.0",
-    "next": "16.2.10",
+    "next": "^15.3.3",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },

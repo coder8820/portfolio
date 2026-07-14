@@ -7,8 +7,8 @@ export default function StatusBar() {
   const [time, setTime] = useState<string>("");
 
   useEffect(() => {
-    setMounted(true);
-    
+    const timer = window.setTimeout(() => setMounted(true), 0);
+
     const update = () => {
       const now = new Date();
       setTime(
@@ -21,8 +21,11 @@ export default function StatusBar() {
     };
     
     update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
+    const id = window.setInterval(update, 1000);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(id);
+    };
   }, []);
 
   if (!mounted) return null;

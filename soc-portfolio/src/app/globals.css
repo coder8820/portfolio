@@ -38,15 +38,19 @@
 
 html {
   scroll-behavior: smooth;
+  min-height: 100%;
 }
 
 body {
+  min-height: 100vh;
+  background-color: var(--bg);
   background: var(--bg);
   color: var(--text);
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(57, 255, 140, 0.08), transparent),
     repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  overflow-x: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -141,6 +145,11 @@ body {
 
 .ticker-track {
   animation: ticker 18s linear infinite;
+}
+
+.glitch-hover:hover {
+  text-shadow: 0 0 6px rgba(57, 255, 140, 0.7);
+  box-shadow: 0 0 10px rgba(57, 255, 140, 0.2);
 }
 
 .grid-fade {

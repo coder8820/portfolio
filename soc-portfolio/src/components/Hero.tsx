@@ -19,24 +19,24 @@ export default function Hero() {
 
   useEffect(() => {
     if (visibleLines >= LINES.length) {
-      setDone(true);
-      return;
+      const timer = window.setTimeout(() => setDone(true), 0);
+      return () => window.clearTimeout(timer);
     }
-    
+
     const current = LINES[visibleLines];
     const full = `${current.prompt}`;
-    
+
     if (charCount < full.length) {
-      const t = setTimeout(() => setCharCount((c) => c + 1), 28);
-      return () => clearTimeout(t);
-    } else {
-      const t = setTimeout(() => {
-        setVisibleLines((v) => v + 1);
-        setCharCount(0);
-      }, 350);
-      return () => clearTimeout(t);
+      const t = window.setTimeout(() => setCharCount((c) => c + 1), 28);
+      return () => window.clearTimeout(t);
     }
-  }, [charCount, visibleLines, LINES.length]);
+
+    const t = window.setTimeout(() => {
+      setVisibleLines((v) => v + 1);
+      setCharCount(0);
+    }, 350);
+    return () => window.clearTimeout(t);
+  }, [charCount, visibleLines, LINES]);
 
   return (
     <section className="relative overflow-hidden">

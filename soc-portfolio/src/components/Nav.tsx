@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { profile } from "@/data/content";
 import { Menu, X, ShieldHalf } from "lucide-react";
+import ContactModal from "./ContactModal";
 
 const links = [
   { href: "#about", label: "about" },
@@ -34,15 +35,19 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
+          <ContactModal />
         </div>
 
-        <button
-          className="sm:hidden text-muted"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="flex items-center gap-3 sm:hidden">
+          <ContactModal />
+          <button
+            className="text-muted"
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
 
       {open && (
