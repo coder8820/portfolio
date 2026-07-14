@@ -1,7 +1,7 @@
 import { certifications } from "@/data/content";
 import SectionHeading from "./SectionHeading";
 import { BadgeCheck } from "lucide-react";
-
+//  Certifications component displays a list of clearance badges with their details.
 export default function Certifications() {
   return (
     <section id="certifications" className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20">
