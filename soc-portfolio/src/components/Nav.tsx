@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { profile } from "@/data/content";
 import { Menu, X, ShieldHalf } from "lucide-react";
-import ContactModal from "./ContactModal";
+import ContactPanel from "./ContactPanel";
 
 const links = [
   { href: "#about", label: "about" },
@@ -21,27 +21,29 @@ export default function Nav() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 h-14 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2 font-mono text-sm text-text">
           <ShieldHalf size={18} className="text-accent" />
-          <span className="font-semibold">{profile.name.split(" ")[0].toLowerCase()}</span>
+          <span className="font-semibold">
+            {profile.name.split(" ")[0].toLowerCase()}
+          </span>
           <span className="text-dim">/soc</span>
         </a>
 
-        <div className="hidden sm:flex items-center gap-6 font-mono text-sm">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-muted hover:text-accent transition-colors"
-            >
-              {l.label}
-            </a>
-          ))}
-          <ContactModal />
-        </div>
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="hidden sm:flex items-center gap-6 font-mono text-sm">
+            {links.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-muted hover:text-accent transition-colors"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
 
-        <div className="flex items-center gap-3 sm:hidden">
-          <ContactModal />
+          <ContactPanel />
+
           <button
-            className="text-muted"
+            className="text-muted sm:hidden"
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
           >

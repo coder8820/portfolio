@@ -110,6 +110,21 @@ export const projects: Project[] = [
     outcome:
       "Produced a timeline reconstruction of a simulated multi-stage attack across mixed OS environments.",
   },
+  {
+    id: "PRJ-006",
+    title: "Web Vulnerability Scanner",
+    severityLabel: "high",
+    status: "Completed",
+    summary:
+      "A custom-built web vulnerability scanner that automates the detection of common security flaws in web applications, such as SQL injection, XSS, and misconfigured headers.",
+    problem:
+      "Manual vulnerability assessment of web applications is time-consuming and prone to missing repetitive, easily automatable checks across multiple endpoints.",
+    approach:
+      "Designed a Python-based scanner that crawls target URLs, tests input fields and parameters against a library of known vulnerability patterns (SQLi, XSS, CSRF, insecure headers), and logs findings with severity ratings.",
+    tools: ["Python", "Requests", "BeautifulSoup", "Regex", "HTTP Headers Analysis"],
+    outcome:
+      "Successfully identified multiple vulnerabilities in test environments (DVWA/local lab setups) and generated a structured report categorizing findings by risk level.",
+  },
 ];
 
 export type SkillCategory = {
@@ -172,6 +187,36 @@ export const certifications: Certification[] = [
     issuer: "Cisco Networking Academy",
     date: "2025",
     code: "CLR-CSCO-CF",
+  },
+  {
+    name: "Mobile App Development (Flutter)",
+    issuer: "Haza Institute of Technology",
+    date: "2024", 
+    code: "MAD-01",
+  },
+  {
+    name: "Game App Development",
+    issuer: "Haza Institute of Technology",
+    date: "2025", 
+    code: "GAD-01",
+  },
+  {
+    name: "PEF Scholarship Award",
+    issuer: "University of Baltistan",
+    date: "2023",
+    code: "PEF-SCH",
+  },
+  {
+    name: "E-Commerce Training Certificate",
+    issuer: "Global UGRAD",
+    date: "2026", 
+    code: "ECOM-01",
+  },
+  {
+    name: "AI Security Certificate",
+    issuer: "TryHackMe",
+    date: "2026",
+    code: "SEC-ai-01",
   },
 ];
 
