@@ -155,6 +155,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "Python", level: 80 },
       { name: "Bash", level: 75 },
       { name: "JavaScript", level: 65 },
+      { name: "C++", level: 60 },
     ],
   },
   {
@@ -163,6 +164,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "Kali Linux", level: 80 },
       { name: "Windows Server", level: 70 },
       { name: "Web Technologies", level: 65 },
+      { name: "MacOS", level: 60 },
     ],
   },
 ];
@@ -218,6 +220,12 @@ export const certifications: Certification[] = [
     date: "2026",
     code: "SEC-ai-01",
   },
+  {
+    name: "Generative AI and Prompt Engineering",
+    issuer: "iCodeGrue",
+    date: "2026",
+    code: "GEN-AI-01",
+  }
 ];
 
 export const threatFeed = [

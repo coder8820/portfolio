@@ -42,6 +42,16 @@ const INPUT_CLASS =
 
 const LABEL_CLASS = 'mb-1.5 block font-mono text-xs text-muted';
 
+// convert File -> base64 string (required for EmailJS attachments)
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ContactPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
@@ -59,7 +69,7 @@ export default function ContactPanel() {
     if (!isOpen) return;
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape') closePanel();
     };
 
     document.body.style.overflow = 'hidden';
@@ -77,7 +87,7 @@ export default function ContactPanel() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const close = () => {
+  const closePanel = () => {
     setIsOpen(false);
     clearForm();
   };
@@ -96,6 +106,14 @@ export default function ContactPanel() {
     if (file && !file.type.startsWith('image/')) {
       setStatus('error');
       setFeedback('Only image files are accepted.');
+      e.target.value = '';
+      return;
+    }
+
+    // EmailJS free plan has attachment size limits (~50KB template payload)
+    if (file && file.size > 2 * 1024 * 1024) {
+      setStatus('error');
+      setFeedback('Image too large. Please use a file under 2MB.');
       e.target.value = '';
       return;
     }
@@ -125,31 +143,38 @@ export default function ContactPanel() {
     setFeedback('');
 
     try {
-      if (!emailJsReady) throw new Error('EmailJS not configured');
+      if (!emailJsReady) {
+        throw new Error(
+          'EmailJS not configured — check NEXT_PUBLIC_EMAILJS_* env vars',
+        );
+      }
 
-      await emailjs.send(
-        SERVICE_ID,
-        TEMPLATE_ID,
-        {
-          from_name: form.name.trim(),
-          from_email: form.email.trim(),
-          message: form.message.trim(),
-          reply_to: form.email.trim(),
-          contact_email: CONTACT_EMAIL,
-          attachment: form.file
-            ? [{ data: form.file, name: form.file.name, type: form.file.type }]
-            : undefined,
-        },
-        PUBLIC_KEY,
-      );
+      const templateParams: Record<string, unknown> = {
+        from_name: form.name.trim(),
+        from_email: form.email.trim(),
+        message: form.message.trim(),
+        reply_to: form.email.trim(),
+        contact_email: CONTACT_EMAIL,
+      };
+
+      // only attach if a file was selected, converted to base64
+      if (form.file) {
+        const base64 = await fileToBase64(form.file);
+        templateParams.attachment = base64;
+        templateParams.attachment_name = form.file.name;
+      }
+
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
 
       setStatus('success');
       setFeedback('Message sent successfully!');
       setForm(EMPTY_FORM);
       if (fileRef.current) fileRef.current.value = '';
 
-      setTimeout(close, 2000);
-    } catch {
+      setTimeout(closePanel, 2000);
+    } catch (err) {
+      // TEMP: log the real error to console for debugging
+      console.error('EmailJS send failed:', err);
       setStatus('error');
       setFeedback('Unable to send your message. Please try again.');
     }
@@ -175,7 +200,7 @@ export default function ContactPanel() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-            onClick={close}
+            onClick={closePanel}
           >
             <div
               className="absolute inset-0 bg-black/60 backdrop-blur-md"
@@ -223,7 +248,7 @@ export default function ContactPanel() {
                 </div>
                 <button
                   type="button"
-                  onClick={close}
+                  onClick={closePanel}
                   aria-label="Close contact form"
                   className="rounded-sm border border-line p-1.5 text-muted transition-colors hover:border-accent-dim hover:text-text"
                 >
@@ -346,7 +371,7 @@ export default function ContactPanel() {
                   <div className="flex items-center justify-end gap-3">
                     <button
                       type="button"
-                      onClick={close}
+                      onClick={closePanel}
                       className="rounded-sm border border-line px-4 py-2 font-mono text-xs text-muted transition-colors hover:border-accent-dim hover:text-text"
                     >
                       Cancel
