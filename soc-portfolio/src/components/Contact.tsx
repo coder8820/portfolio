@@ -9,7 +9,7 @@ const channels = [
   { icon: Briefcase, label: "LinkedIn", value: "Connect", href: profile.linkedin },
   { icon: Flag, label: "TryHackMe", value: "View profile", href: profile.tryhackme },
 ];
-
+// this is a list of contact channels that will be displayed in the contact section. Each channel has an icon, label, value, and href.
 export default function Contact() {
   return (
     <section id="contact" className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20">
