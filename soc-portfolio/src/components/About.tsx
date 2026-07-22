@@ -3,6 +3,7 @@ import SectionHeading from "./SectionHeading";
 import TerminalWindow from "./TerminalWindow";
 import { ShieldCheck, Radar, Terminal } from "lucide-react";
 
+// this is focusArea
 const focusAreas = [
   {
     icon: Radar,
