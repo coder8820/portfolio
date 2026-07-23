@@ -21,6 +21,7 @@ const focusAreas = [
     text: "Triaging alerts, correlating cross-platform evidence, and documenting findings clearly.",
   },
 ];
+// this is my about section working properly
 
 export default function About() {
   return (
