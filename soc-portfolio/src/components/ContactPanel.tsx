@@ -12,7 +12,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { profile } from '@/data/content';
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -61,6 +61,21 @@ export default function ContactPanel() {
 
   const emailJsReady = Boolean(SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY);
 
+  // clearForm and closePanel are declared before any effect/handler
+  // that references them, and wrapped in useCallback so the
+  // useEffect dependency array below stays stable.
+  const clearForm = useCallback(() => {
+    setForm(EMPTY_FORM);
+    setStatus('idle');
+    setFeedback('');
+    if (fileRef.current) fileRef.current.value = '';
+  }, []);
+
+  const closePanel = useCallback(() => {
+    setIsOpen(false);
+    clearForm();
+  }, [clearForm]);
+
   useEffect(() => {
     if (PUBLIC_KEY) emailjs.init(PUBLIC_KEY);
   }, []);
@@ -78,19 +93,7 @@ export default function ContactPanel() {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', onKey);
     };
-  }, [isOpen]);
-
-  const clearForm = () => {
-    setForm(EMPTY_FORM);
-    setStatus('idle');
-    setFeedback('');
-    if (fileRef.current) fileRef.current.value = '';
-  };
-
-  const closePanel = () => {
-    setIsOpen(false);
-    clearForm();
-  };
+  }, [isOpen, closePanel]);
 
   const update = (key: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
