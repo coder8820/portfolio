@@ -136,7 +136,10 @@ export default function Footer() {
             )}
             {profile.email && (
               
-               <a href={`mailto:${profile.email}`}
+               <a
+                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${profile.email}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Email"
                 className="flex h-8 w-8 items-center justify-center rounded-sm border border-line text-muted transition-colors hover:border-accent-dim hover:text-accent"
               >

@@ -4,7 +4,7 @@ import TerminalWindow from "./TerminalWindow";
 import { Mail, Code2, Briefcase, Flag } from "lucide-react";
 
 const channels = [
-  { icon: Mail, label: "Email", value: profile.email, href: `mailto:${profile.email}` },
+  { icon: Mail, label: "Email", value: profile.email, href: `https://mail.google.com/mail/?view=cm&fs=1&to=${profile.email}` },
   { icon: Code2, label: "GitHub", value: "View repos", href: profile.github },
   { icon: Briefcase, label: "LinkedIn", value: "Connect", href: profile.linkedin },
   { icon: Flag, label: "TryHackMe", value: "View profile", href: profile.tryhackme },

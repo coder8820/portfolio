@@ -12,7 +12,8 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { profile } from '@/data/content';
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -42,15 +43,66 @@ const INPUT_CLASS =
 
 const LABEL_CLASS = 'mb-1.5 block font-mono text-xs text-muted';
 
-// convert File -> base64 string (required for EmailJS attachments)
-function fileToBase64(file: File): Promise<string> {
+// EmailJS free plan caps the ENTIRE API request at ~50KB, so the
+// attachment must be compressed far below that once base64-encoded.
+const ATTACHMENT_TARGET_BYTES = 26 * 1024; // compressed binary budget
+const ATTACHMENT_MAX_DIM = 1280; // px — longest edge before quality loop
+const ATTACHMENT_INPUT_LIMIT = 10 * 1024 * 1024; // pre-compression input cap
+
+// Resize + re-encode the image on a canvas, stepping quality down
+// until the base64 output fits inside the EmailJS request budget.
+function compressImage(
+  file: File,
+  maxDim = ATTACHMENT_MAX_DIM,
+  targetBytes = ATTACHMENT_TARGET_BYTES,
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const width = Math.max(1, Math.round(img.width * scale));
+      const height = Math.max(1, Math.round(img.height * scale));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas not supported in this browser.'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      let quality = 0.8;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      const maxChars = (targetBytes * 4) / 3; // base64 expands by 4/3
+
+      while (dataUrl.length > maxChars && quality > 0.3) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+
+      resolve(dataUrl);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not read that image file.'));
+    };
+
+    img.src = url;
   });
 }
+
+const subscribeNoop = () => () => {};
+const getMountedSnapshot = () => true;
+const getMountedServerSnapshot = () => false;
 
 export default function ContactPanel() {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +110,14 @@ export default function ContactPanel() {
   const [status, setStatus] = useState<FormStatus>('idle');
   const [feedback, setFeedback] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // hydration-safe "client-only" flag without setState-in-effect
+  // (server snapshot false, client snapshot always true)
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    getMountedSnapshot,
+    getMountedServerSnapshot,
+  );
 
   const emailJsReady = Boolean(SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY);
 
@@ -113,10 +173,10 @@ export default function ContactPanel() {
       return;
     }
 
-    // EmailJS free plan has attachment size limits (~50KB template payload)
-    if (file && file.size > 2 * 1024 * 1024) {
+    // sanity cap on the raw input — it gets compressed before sending anyway
+    if (file && file.size > ATTACHMENT_INPUT_LIMIT) {
       setStatus('error');
-      setFeedback('Image too large. Please use a file under 2MB.');
+      setFeedback('Image too large. Please use a file under 10MB.');
       e.target.value = '';
       return;
     }
@@ -143,7 +203,7 @@ export default function ContactPanel() {
     }
 
     setStatus('loading');
-    setFeedback('');
+    setFeedback(form.file ? 'Compressing attachment...' : 'Sending...');
 
     try {
       if (!emailJsReady) {
@@ -157,14 +217,19 @@ export default function ContactPanel() {
         from_email: form.email.trim(),
         message: form.message.trim(),
         reply_to: form.email.trim(),
+        // aliases so the template resolves its To Email field
+        // no matter which variable name it uses
         contact_email: CONTACT_EMAIL,
+        to_email: CONTACT_EMAIL,
+        user_email: CONTACT_EMAIL,
+        email: CONTACT_EMAIL,
       };
 
-      // only attach if a file was selected, converted to base64
+      // compress to fit the free-plan request budget, then attach
       if (form.file) {
-        const base64 = await fileToBase64(form.file);
+        const base64 = await compressImage(form.file);
         templateParams.attachment = base64;
-        templateParams.attachment_name = form.file.name;
+        templateParams.attachment_name = `${form.file.name.replace(/\.[^.]+$/, '')}.jpg`;
       }
 
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
@@ -176,10 +241,15 @@ export default function ContactPanel() {
 
       setTimeout(closePanel, 2000);
     } catch (err) {
-      // TEMP: log the real error to console for debugging
+      const detail =
+        (err as { text?: string; message?: string })?.text ||
+        (err as { message?: string })?.message ||
+        '';
       console.error('EmailJS send failed:', err);
       setStatus('error');
-      setFeedback('Unable to send your message. Please try again.');
+      setFeedback(
+        `Unable to send your message.${detail ? ` (${detail})` : ''} Please try again.`,
+      );
     }
   };
 
@@ -189,20 +259,23 @@ export default function ContactPanel() {
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Open contact form"
-        className="flex h-8 w-8 items-center justify-center rounded-sm border border-line text-muted transition-colors hover:border-accent-dim hover:text-accent"
+        title="Secure channel — contact me"
+        className="group flex h-8 w-8 items-center justify-center rounded-sm border border-accent/40 bg-accent/10 text-accent transition-all duration-200 hover:border-accent hover:bg-accent/15 hover:shadow-[0_0_16px_rgba(57,255,140,0.3)] focus-visible:border-accent"
       >
-        <Mail size={16} />
+        <Mail size={15} />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {isOpen && (
           <motion.div
             key="overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-20 sm:p-6 sm:pt-24"
             onClick={closePanel}
           >
             <div
@@ -220,7 +293,7 @@ export default function ContactPanel() {
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
               transition={{ type: 'spring', stiffness: 320, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
-              className="panel relative flex w-full max-w-lg max-h-[90vh] flex-col overflow-hidden rounded-md shadow-2xl shadow-black/50"
+              className="panel relative flex w-full max-w-lg max-h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-md shadow-2xl shadow-black/50"
             >
               <div className="scanline pointer-events-none" aria-hidden />
 
@@ -325,6 +398,9 @@ export default function ContactPanel() {
                         onChange={onFileSelect}
                       />
                     </label>
+                    <p className="mt-1.5 font-mono text-[10px] text-dim">
+                      auto-compressed to fit email size limits
+                    </p>
 
                     {form.file && (
                       <div className="mt-2 flex items-center justify-between rounded-sm border border-line bg-black/30 px-3 py-2 font-mono text-xs">
@@ -347,7 +423,7 @@ export default function ContactPanel() {
                     {status === 'loading' && (
                       <p className="flex items-center gap-2 text-accent">
                         <Loader2 size={13} className="animate-spin" />
-                        Sending...
+                        {feedback || 'Sending...'}
                       </p>
                     )}
                     {status === 'success' && (
@@ -425,8 +501,10 @@ export default function ContactPanel() {
               </form>
             </motion.div>
           </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </>
   );
 }
