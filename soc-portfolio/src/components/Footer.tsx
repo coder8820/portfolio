@@ -56,7 +56,7 @@ export default function Footer() {
   return (
     <footer className="mt-10 border-t border-line">
       {/* ===== live status strip ===== */}
-      <div className="border-b border-line bg-black/20">
+      <div className="border-b border-line bg-surface-muted">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 font-mono text-[10.5px] text-dim sm:px-6">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">

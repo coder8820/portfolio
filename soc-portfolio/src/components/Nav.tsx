@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { profile } from "@/data/content";
-import { Menu, X, ShieldHalf } from "lucide-react";
+import { Menu, X, ShieldHalf, Sun, Moon } from "lucide-react";
 import ContactPanel from "./ContactPanel";
+import { useTheme } from "./ThemeProvider";
 
 const links = [
   { href: "#about", label: "about" },
@@ -15,9 +16,10 @@ const links = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const { theme, toggle } = useTheme();
 
   return (
-    <nav className="sticky top-0 z-40 bg-bg/85 backdrop-blur border-b border-line">
+    <nav className="sticky top-0 z-40 bg-bg/85 backdrop-blur border-b border-line transition-colors duration-300">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 h-14 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2 font-mono text-sm text-text">
           <ShieldHalf size={18} className="text-accent" />
@@ -43,6 +45,14 @@ export default function Nav() {
           <ContactPanel />
 
           <button
+            onClick={toggle}
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            className="flex h-8 w-8 items-center justify-center rounded-sm border border-line text-muted transition-all duration-200 hover:border-accent-dim hover:text-accent"
+          >
+            {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
+          <button
             className="text-muted sm:hidden"
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
@@ -53,7 +63,7 @@ export default function Nav() {
       </div>
 
       {open && (
-        <div className="sm:hidden border-t border-line px-4 py-3 flex flex-col gap-3 font-mono text-sm bg-bg">
+        <div className="sm:hidden border-t border-line px-4 py-3 flex flex-col gap-3 font-mono text-sm bg-bg transition-colors duration-300">
           {links.map((l) => (
             <a
               key={l.href}

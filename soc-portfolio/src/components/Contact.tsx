@@ -29,7 +29,7 @@ export default function Contact() {
               href={c.href}
               target={c.href.startsWith("http") ? "_blank" : undefined}
               rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
-              className="flex items-center gap-3 rounded-sm border border-line px-4 py-3 hover:border-accent-dim hover:bg-white/3 transition-colors group"
+              className="flex items-center gap-3 rounded-sm border border-line px-4 py-3 hover:border-accent-dim hover:bg-surface-tint transition-colors group"
             >
               <Icon size={18} className="text-accent shrink-0" />
               <div className="min-w-0">

@@ -7,7 +7,7 @@ const sevColor: Record<(typeof severities)[number], string> = {
   critical: "text-red border-red/40 bg-red/10",
   high: "text-amber border-amber/40 bg-amber/10",
   medium: "text-blue border-blue/40 bg-blue/10",
-  info: "text-muted border-line bg-white/5",
+  info: "text-muted border-line bg-surface-light",
 };
 
 export default function ThreatFeed() {

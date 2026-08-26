@@ -5,7 +5,7 @@ const sevStyle: Record<Severity, string> = {
   critical: "text-red border-red/40 bg-red/10",
   high: "text-amber border-amber/40 bg-amber/10",
   medium: "text-blue border-blue/40 bg-blue/10",
-  info: "text-muted border-line bg-white/5",
+  info: "text-muted border-line bg-surface-light",
 };
 
 const statusStyle: Record<string, string> = {
@@ -73,7 +73,7 @@ export default function Projects() {
                 {p.tools.map((t) => (
                   <span
                     key={t}
-                    className="text-[10px] font-mono px-2 py-1 rounded-sm bg-white/5 border border-line text-muted"
+                    className="text-[10px] font-mono px-2 py-1 rounded-sm bg-surface-light border border-line text-muted"
                   >
                     {t}
                   </span>
@@ -81,7 +81,7 @@ export default function Projects() {
               </div>
             </div>
 
-            <div className="px-5 py-2.5 border-t border-line bg-black/20 flex items-center justify-between font-mono text-[11px]">
+            <div className="px-5 py-2.5 border-t border-line bg-surface-muted flex items-center justify-between font-mono text-[11px]">
               <span className="text-dim">status</span>
               <span className={statusStyle[p.status]}>{p.status}</span>
             </div>

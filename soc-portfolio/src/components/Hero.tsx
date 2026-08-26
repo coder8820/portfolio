@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import { profile } from "@/data/content";
 import TerminalWindow from "./TerminalWindow";
-import ThreatFeed from "./ThreatFeed";
 import { ArrowDown, FileDown } from "lucide-react";
 
 export default function Hero() {
@@ -115,8 +115,65 @@ export default function Hero() {
             </p>
           </div>
 
-          <div className="lg:col-span-2">
-            <ThreatFeed />
+          <div className="lg:col-span-2 space-y-5">
+            {/* Live Monitoring Feed */}
+            <div className="panel rounded-md overflow-hidden">
+              <div className="panel-header flex items-center gap-2 px-4 py-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-red/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-accent/70" />
+                <span className="ml-3 text-[11px] font-mono text-muted tracking-wide">
+                  live_monitoring.view
+                </span>
+                <div className="ml-auto flex items-center gap-1.5 font-mono text-[10px] text-accent">
+                  <span className="crt-dot inline-block h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                  LIVE
+                </div>
+              </div>
+              <div className="relative">
+                <Image
+                  src="/monitoring-image.gif"
+                  alt="SOC analyst monitoring multiple screens"
+                  width={600}
+                  height={400}
+                  className="w-full h-auto object-cover"
+                  priority
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-panel via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-0 inset-x-0 px-4 pb-3 flex items-center justify-between font-mono text-[10px] text-dim pointer-events-none">
+                  <span>NODE: soc-dashboard-01</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                    ACTIVE
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Threat Level Card */}
+            <div className="panel rounded-md p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-mono text-[11px] text-dim uppercase tracking-wider">
+                  Threat Assessment
+                </span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded-sm border border-amber/40 bg-amber/10 text-amber">
+                  ELEVATED
+                </span>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  { label: "Network", status: "Monitored", color: "text-accent" },
+                  { label: "Endpoints", status: "Protected", color: "text-accent" },
+                  { label: "SIEM", status: "Active", color: "text-blue" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between font-mono text-xs">
+                    <span className="text-muted">{item.label}</span>
+                    <span className={item.color}>{item.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

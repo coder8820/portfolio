@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* ============================
+   DARK THEME (default)
+   ============================ */
 :root {
   --bg: #0a0f0d;
   --bg-panel: #0f1613;
@@ -13,8 +16,72 @@
   --amber: #ffb020;
   --red: #ff5c5c;
   --blue: #4fb8ff;
+
+  --body-gradient: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(57, 255, 140, 0.08),
+    transparent
+  );
+  --body-scanline: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.012) 0px,
+    rgba(255, 255, 255, 0.012) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  --panel-shadow: none;
+  --card-hover-shadow: 0 0 10px rgba(57, 255, 140, 0.2);
+  --surface: rgba(0, 0, 0, 0.25);
+  --surface-light: rgba(0, 0, 0, 0.04);
+  --surface-tint: rgba(255, 255, 255, 0.03);
+  --surface-muted: rgba(0, 0, 0, 0.2);
+  --surface-input: rgba(0, 0, 0, 0.3);
+  --surface-overlay: rgba(0, 0, 0, 0.6);
 }
 
+/* ============================
+   LIGHT THEME
+   ============================ */
+.light {
+  --bg: #f0f4f8;
+  --bg-panel: #ffffff;
+  --bg-panel-raised: #f7f9fb;
+  --line: #d1d9e0;
+  --text: #1a2332;
+  --text-muted: #5a6a7a;
+  --text-dim: #8a96a4;
+  --accent: #0a8f5c;
+  --accent-dim: #067a4c;
+  --amber: #d4890a;
+  --red: #d93025;
+  --blue: #1a73e8;
+
+  --body-gradient: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(10, 143, 92, 0.06),
+    transparent
+  );
+  --body-scanline: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.008) 0px,
+    rgba(0, 0, 0, 0.008) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --surface: rgba(0, 0, 0, 0.03);
+  --surface-light: rgba(0, 0, 0, 0.015);
+  --surface-tint: rgba(0, 0, 0, 0.02);
+  --surface-muted: rgba(0, 0, 0, 0.04);
+  --surface-input: rgba(0, 0, 0, 0.03);
+  --surface-overlay: rgba(0, 0, 0, 0.4);
+}
+
+/* ============================
+   TAILWIND THEME MAPPING
+   ============================ */
 @theme inline {
   --color-bg: var(--bg);
   --color-panel: var(--bg-panel);
@@ -28,10 +95,19 @@
   --color-amber: var(--amber);
   --color-red: var(--red);
   --color-blue: var(--blue);
+  --color-surface: var(--surface);
+  --color-surface-light: var(--surface-light);
+  --color-surface-tint: var(--surface-tint);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-input: var(--surface-input);
+  --color-surface-overlay: var(--surface-overlay);
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* ============================
+   BASE STYLES
+   ============================ */
 * {
   box-sizing: border-box;
 }
@@ -47,12 +123,14 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(57, 255, 140, 0.08), transparent),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  background-image: var(--body-gradient), var(--body-scanline);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ============================
+   REDUCED MOTION
+   ============================ */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -62,11 +140,21 @@ body {
   }
 }
 
+/* ============================
+   SELECTION
+   ============================ */
 ::selection {
   background: var(--accent);
   color: #06120c;
 }
 
+.light ::selection {
+  color: #ffffff;
+}
+
+/* ============================
+   SCROLLBAR
+   ============================ */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -82,22 +170,29 @@ body {
   background: var(--accent-dim);
 }
 
+/* ============================
+   FOCUS
+   ============================ */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-/* --- Terminal / console primitives --- */
-
+/* ============================
+   TERMINAL / CONSOLE PRIMITIVES
+   ============================ */
 .panel {
   background: linear-gradient(180deg, var(--bg-panel-raised), var(--bg-panel));
   border: 1px solid var(--line);
   position: relative;
+  box-shadow: var(--panel-shadow);
+  transition: background 0.3s ease, border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .panel-header {
   border-bottom: 1px solid var(--line);
-  background: rgba(0,0,0,0.25);
+  background: var(--surface);
 }
 
 .crt-dot {
@@ -113,13 +208,23 @@ body {
 }
 
 @keyframes blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
 }
 
 .scanline {
@@ -132,15 +237,34 @@ body {
 .scanline::before {
   content: "";
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   height: 40%;
-  background: linear-gradient(180deg, transparent, rgba(57,255,140,0.05), transparent);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(57, 255, 140, 0.05),
+    transparent
+  );
   animation: scan 6s linear infinite;
 }
 
+.light .scanline::before {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(10, 143, 92, 0.04),
+    transparent
+  );
+}
+
 @keyframes ticker {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
 }
 
 .ticker-track {
@@ -152,10 +276,29 @@ body {
   box-shadow: 0 0 10px rgba(57, 255, 140, 0.2);
 }
 
+.light .glitch-hover:hover {
+  text-shadow: 0 0 6px rgba(10, 143, 92, 0.5);
+  box-shadow: 0 0 10px rgba(10, 143, 92, 0.12);
+}
+
 .grid-fade {
-  background-image:
-    linear-gradient(rgba(57,255,140,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(57,255,140,0.06) 1px, transparent 1px);
+  background-image: linear-gradient(
+      rgba(57, 255, 140, 0.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(57, 255, 140, 0.06) 1px, transparent 1px);
   background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black, transparent 75%);
+  mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 30%,
+    black,
+    transparent 75%
+  );
+}
+
+.light .grid-fade {
+  background-image: linear-gradient(
+      rgba(10, 143, 92, 0.05) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(10, 143, 92, 0.05) 1px, transparent 1px);
 }

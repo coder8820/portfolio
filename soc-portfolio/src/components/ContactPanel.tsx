@@ -39,7 +39,7 @@ const CONTACT_EMAIL =
   process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? profile.email;
 
 const INPUT_CLASS =
-  'w-full rounded-sm border border-line bg-black/30 px-3 py-2.5 font-mono text-sm text-text outline-none transition-colors placeholder:text-dim focus:border-accent-dim focus:ring-1 focus:ring-accent/20';
+  'w-full rounded-sm border border-line bg-surface-input px-3 py-2.5 font-mono text-sm text-text outline-none transition-colors placeholder:text-dim focus:border-accent-dim focus:ring-1 focus:ring-accent/20';
 
 const LABEL_CLASS = 'mb-1.5 block font-mono text-xs text-muted';
 
@@ -279,7 +279,7 @@ export default function ContactPanel() {
             onClick={closePanel}
           >
             <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              className="absolute inset-0 bg-surface-overlay backdrop-blur-md"
               aria-hidden
             />
 
@@ -386,7 +386,7 @@ export default function ContactPanel() {
                     <label htmlFor="cp-file" className={LABEL_CLASS}>
                       Attach Image
                     </label>
-                    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed border-line bg-black/25 px-3 py-3 font-mono text-xs text-muted transition-colors hover:border-accent-dim hover:text-accent">
+                    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed border-line bg-surface-input px-3 py-3 font-mono text-xs text-muted transition-colors hover:border-accent-dim hover:text-accent">
                       <Paperclip size={14} />
                       {form.file ? 'Change image' : 'Choose image'}
                       <input
@@ -403,7 +403,7 @@ export default function ContactPanel() {
                     </p>
 
                     {form.file && (
-                      <div className="mt-2 flex items-center justify-between rounded-sm border border-line bg-black/30 px-3 py-2 font-mono text-xs">
+                      <div className="mt-2 flex items-center justify-between rounded-sm border border-line bg-surface-input px-3 py-2 font-mono text-xs">
                         <span className="truncate text-muted">
                           {form.file.name}
                         </span>
@@ -419,7 +419,7 @@ export default function ContactPanel() {
                     )}
                   </div>
 
-                  <div className="rounded-sm border border-line bg-black/25 px-3 py-2.5 font-mono text-xs">
+                  <div className="rounded-sm border border-line bg-surface-input px-3 py-2.5 font-mono text-xs">
                     {status === 'loading' && (
                       <p className="flex items-center gap-2 text-accent">
                         <Loader2 size={13} className="animate-spin" />
@@ -446,7 +446,7 @@ export default function ContactPanel() {
                   </div>
                 </div>
 
-                <div className="shrink-0 border-t border-line bg-black/20 px-5 py-4">
+                <div className="shrink-0 border-t border-line bg-surface-muted px-5 py-4">
                   <div className="flex items-center justify-end gap-3">
                     <button
                       type="button"

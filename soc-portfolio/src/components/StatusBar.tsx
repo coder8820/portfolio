@@ -31,7 +31,7 @@ export default function StatusBar() {
   if (!mounted) return null;
 
   return (
-    <div className="w-full border-b border-line bg-black/40 backdrop-blur text-[11px] sm:text-xs font-mono">
+    <div className="w-full border-b border-line bg-surface-muted/80 backdrop-blur text-[11px] sm:text-xs font-mono">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-2 flex items-center justify-between gap-4 text-dim">
         <div className="flex items-center gap-2 text-accent">
           <span className="crt-dot w-2 h-2 rounded-full bg-accent inline-block animate-pulse" />
