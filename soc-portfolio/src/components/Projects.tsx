@@ -1,5 +1,8 @@
+"use client";
+
 import { projects, Severity } from "@/data/content";
 import SectionHeading from "./SectionHeading";
+import Reveal from "./Reveal";
 
 const sevStyle: Record<Severity, string> = {
   critical: "text-red border-red/40 bg-red/10",
@@ -24,10 +27,10 @@ export default function Projects() {
       />
 
       <div className="grid md:grid-cols-2 gap-5">
-        {projects.map((p) => (
+        {projects.map((p, idx) => (
+          <Reveal key={p.id} delay={(idx % 2) * 0.1}>
           <article
-            key={p.id}
-            className="panel rounded-md overflow-hidden flex flex-col"
+            className="panel rounded-md overflow-hidden flex flex-col hover-lift"
           >
             <div className="panel-header px-5 py-3 flex items-center justify-between">
               <span className="font-mono text-[11px] text-dim">{p.id}</span>
@@ -86,6 +89,7 @@ export default function Projects() {
               <span className={statusStyle[p.status]}>{p.status}</span>
             </div>
           </article>
+          </Reveal>
         ))}
       </div>
     </section>

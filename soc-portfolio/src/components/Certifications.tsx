@@ -1,5 +1,8 @@
+"use client";
+
 import { certifications } from "@/data/content";
 import SectionHeading from "./SectionHeading";
+import Reveal from "./Reveal";
 import { BadgeCheck, ExternalLink } from "lucide-react";
 
 // Certifications component — presented as formal credential cards:
@@ -14,10 +17,10 @@ export default function Certifications() {
       <SectionHeading eyebrow="~/certifications" title="Clearance badges" />
 
       <div className="mt-10 grid sm:grid-cols-2 gap-5">
-        {certifications.map((cert) => (
+        {certifications.map((cert, idx) => (
+          <Reveal key={cert.code} delay={(idx % 2) * 0.1}>
           <div
-            key={cert.code}
-            className="relative panel rounded-md overflow-hidden transition-shadow duration-200 hover:shadow-md hover:border-accent/40"
+            className="relative panel rounded-md overflow-hidden transition-shadow duration-200 hover:shadow-md hover:border-accent/40 hover-lift"
           >
             {/* top accent bar */}
             <div className="h-[3px] w-full bg-gradient-to-r from-accent via-accent/60 to-transparent" />
@@ -61,6 +64,7 @@ export default function Certifications() {
               )}
             </div>
           </div>
+          </Reveal>
         ))}
       </div>
     </section>

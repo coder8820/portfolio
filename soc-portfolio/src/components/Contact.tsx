@@ -1,6 +1,9 @@
+"use client";
+
 import { profile } from "@/data/content";
 import SectionHeading from "./SectionHeading";
 import TerminalWindow from "./TerminalWindow";
+import Reveal from "./Reveal";
 import { Mail, Code2, Briefcase, Flag } from "lucide-react";
 
 const channels = [
@@ -19,6 +22,7 @@ export default function Contact() {
         description="Hiring for a blue team or SOC role? Reach out — happy to walk through any project in detail."
       />
 
+      <Reveal>
       <TerminalWindow title="contact.sh">
         <div className="grid sm:grid-cols-2 gap-4">
           {channels.map((c) => {
@@ -45,6 +49,7 @@ export default function Contact() {
           })}
         </div>
       </TerminalWindow>
+      </Reveal>
     </section>
   );
 }

@@ -94,21 +94,13 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* middle: quick links */}
-          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-mono text-[11px] text-muted">
-            <a href="#projects" className="transition-colors hover:text-accent">
-              projects
-            </a>
-            <a href="#certifications" className="transition-colors hover:text-accent">
-              certifications
-            </a>
-            <a href="#skills" className="transition-colors hover:text-accent">
-              skills
-            </a>
-            <a href="#contact" className="transition-colors hover:text-accent">
-              contact
-            </a>
-          </nav>
+          {/* middle: message */}
+          <div className="max-w-sm text-center sm:text-left">
+            <p className="font-mono text-[11px] text-muted leading-relaxed">
+              Keeping the blue team sharp — if you see something, say something.
+              <span className="text-accent"> stay alert, stay calm, and document everything.</span>
+            </p>
+          </div>
 
           {/* right: social + back to top */}
           <div className="flex items-center gap-3">

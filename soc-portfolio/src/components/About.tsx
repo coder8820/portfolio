@@ -1,6 +1,7 @@
 import { profile } from "@/data/content";
 import SectionHeading from "./SectionHeading";
 import TerminalWindow from "./TerminalWindow";
+import Reveal from "./Reveal";
 import { ShieldCheck, Radar, Terminal } from "lucide-react";
 
 // this is focusArea
@@ -33,7 +34,7 @@ export default function About() {
       />
 
       <div className="grid lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-2">
+        <Reveal className="lg:col-span-2">
           <TerminalWindow title="whoami --verbose">
             <dl className="font-mono text-xs sm:text-sm space-y-3">
               <div className="flex justify-between border-b border-line pb-2">
@@ -54,15 +55,15 @@ export default function About() {
               </div>
             </dl>
           </TerminalWindow>
-        </div>
+        </Reveal>
 
         <div className="lg:col-span-3 grid sm:grid-cols-1 gap-4">
-          {focusAreas.map((area) => {
+          {focusAreas.map((area, idx) => {
             const Icon = area.icon;
             return (
+            <Reveal key={area.title} delay={idx * 0.12}>
             <div
-              key={area.title}
-              className="panel rounded-md p-5 flex gap-4 items-start"
+              className="panel rounded-md p-5 flex gap-4 items-start hover-lift"
             >
               <div className="shrink-0 w-9 h-9 rounded-sm bg-accent/10 border border-accent-dim/40 flex items-center justify-center">
                 <Icon size={17} className="text-accent" />
@@ -76,6 +77,7 @@ export default function About() {
                 </p>
               </div>
             </div>
+            </Reveal>
             );
           })}
         </div>
