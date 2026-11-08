@@ -3,11 +3,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SectionHeading from "./SectionHeading";
-import Reveal from "./Reveal";
 import {
   ShieldAlert,
   Terminal,
-  FileCode2,
   CheckCircle2,
   AlertTriangle,
   Play,
@@ -15,12 +13,8 @@ import {
   Copy,
   Check,
   Layers,
-  ChevronRight,
   Flame,
   Radio,
-  ExternalLink,
-  Eye,
-  SlidersHorizontal,
   HelpCircle,
   X,
   BookOpen,
@@ -506,7 +500,7 @@ export default function ThreatLab() {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-red animate-pulse" />
               <span className="font-mono text-xs font-bold text-text">
-                {current.id} // {current.name}
+                {`${current.id} // ${current.name}`}
               </span>
               <span className="hidden sm:inline-block font-mono text-[10px] px-2 py-0.5 rounded-sm border border-red/40 bg-red/10 text-red font-semibold">
                 SEV: {current.severity} ({current.severityScore})

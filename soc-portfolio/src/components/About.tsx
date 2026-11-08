@@ -11,11 +11,8 @@ import {
   Terminal,
   Activity,
   Server,
-  Network,
-  Cpu,
   Lock,
   ExternalLink,
-  Layers,
   CheckCircle2,
 } from "lucide-react";
 

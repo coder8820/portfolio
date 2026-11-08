@@ -7,19 +7,21 @@ import SectionHeading from "./SectionHeading";
 import Reveal from "./Reveal";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BadgeCheck,
   ShieldCheck,
   Calendar,
-  Building,
+  Building2,
   CheckCircle2,
   X,
-  ExternalLink,
-  Award,
   Sparkles,
   Zap,
-  Terminal,
   Copy,
   Check,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  ArrowUpRight,
+  Shield,
+  FileCheck2,
 } from "lucide-react";
 
 const certCategories = [
@@ -30,10 +32,13 @@ const certCategories = [
   "Honors & Merit",
 ] as const;
 
+const INITIAL_VISIBLE_COUNT = 6; // Exactly 2 rows of 3 cards each
+
 export default function Certifications() {
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
   const [selectedCert, setSelectedCert] = useState<Certification | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const certModalId = useId();
 
   // Escape key listener to close modal
@@ -59,10 +64,23 @@ export default function Certifications() {
     };
   }, [selectedCert]);
 
+  // When category changes, reset expansion state
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    setIsExpanded(false);
+  };
+
   const filteredCerts =
     activeCategory === "ALL"
       ? certifications
       : certifications.filter((c) => c.category === activeCategory);
+
+  const visibleCerts = isExpanded
+    ? filteredCerts
+    : filteredCerts.slice(0, INITIAL_VISIBLE_COUNT);
+
+  const hasMore = filteredCerts.length > INITIAL_VISIBLE_COUNT;
+  const remainingCount = filteredCerts.length - INITIAL_VISIBLE_COUNT;
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -73,7 +91,7 @@ export default function Certifications() {
   return (
     <section
       id="certifications"
-      className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20"
+      className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20"
     >
       <SectionHeading
         eyebrow="~/certifications"
@@ -81,145 +99,227 @@ export default function Certifications() {
         description="Verified cybersecurity accreditations, defensive engineering badges, and technical merit honors."
       />
 
-      {/* Category Filter Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-8 no-scrollbar">
-        {certCategories.map((cat) => {
-          const count =
-            cat === "ALL"
-              ? certifications.length
-              : certifications.filter((c) => c.category === cat).length;
-          const isActive = activeCategory === cat;
-          return (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setActiveCategory(cat)}
-              className={`font-mono text-xs px-3 py-1.5 rounded-sm border whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
-                isActive
-                  ? "bg-accent text-[#06120c] font-bold border-accent shadow-sm"
-                  : "bg-surface-light border-line text-muted hover:border-accent/40 hover:text-text"
-              }`}
-            >
-              <span>{cat}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-sm font-mono ${
+      {/* Category Filter Pills & Telemetry Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {certCategories.map((cat) => {
+            const count =
+              cat === "ALL"
+                ? certifications.length
+                : certifications.filter((c) => c.category === cat).length;
+            const isActive = activeCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => handleCategoryChange(cat)}
+                className={`font-mono text-xs px-3.5 py-1.5 rounded-md border whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
                   isActive
-                    ? "bg-[#06120c]/20 text-[#06120c] font-bold"
-                    : "bg-surface text-dim border border-line"
+                    ? "bg-accent text-[#06120c] font-bold border-accent shadow-[0_0_15px_rgba(57,255,140,0.25)]"
+                    : "bg-surface-light border-line text-muted hover:border-accent/40 hover:text-text"
                 }`}
               >
-                {count}
-              </span>
-            </button>
-          );
-        })}
+                <span>{cat}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-sm font-mono ${
+                    isActive
+                      ? "bg-[#06120c]/25 text-[#06120c] font-bold"
+                      : "bg-surface text-dim border border-line"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Telemetry Counter */}
+        <div className="hidden md:flex items-center gap-2 font-mono text-[11px] text-muted self-end sm:self-auto bg-surface-light px-3 py-1.5 rounded-md border border-line">
+          <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+          <span className="text-dim">STATUS:</span>
+          <span className="text-accent font-semibold">
+            {visibleCerts.length}/{filteredCerts.length} DISPLAYED
+          </span>
+        </div>
       </div>
 
-      {/* High-Tech Certificate Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {filteredCerts.map((cert, idx) => (
-          <Reveal key={cert.code} delay={(idx % 4) * 0.08}>
-            <article
-              role="button"
-              tabIndex={0}
-              onClick={() => setSelectedCert(cert)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setSelectedCert(cert);
-                }
-              }}
-              className="panel rounded-md overflow-hidden flex flex-col h-full border border-line hover:border-accent/50 transition-all duration-300 group hover-lift cursor-pointer bg-surface/90 relative"
+      {/* 3 Columns Per Row High-Tech Certificate Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatePresence mode="popLayout">
+          {visibleCerts.map((cert, idx) => (
+            <motion.div
+              key={cert.code}
+              layout
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, delay: (idx % 6) * 0.05 }}
+              className="h-full"
             >
-              {/* Top Cyber Hacking Image Container */}
-              <div className="relative h-44 w-full overflow-hidden bg-black/90 border-b border-line">
-                <Image
-                  src={cert.image}
-                  alt={`${cert.name} Cyber Credential Badge`}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-                />
+              <Reveal delay={(idx % 3) * 0.06}>
+                <article
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedCert(cert)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedCert(cert);
+                    }
+                  }}
+                  className="group relative rounded-lg border border-line bg-panel/90 backdrop-blur-sm overflow-hidden hover:border-accent/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(57,255,140,0.10)] flex flex-col justify-between h-full cursor-pointer hover-lift"
+                >
+                  {/* Subtle HUD Corner Accents */}
+                  <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-accent/0 group-hover:border-accent/80 transition-all duration-300 z-20 pointer-events-none" />
+                  <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-accent/0 group-hover:border-accent/80 transition-all duration-300 z-20 pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-accent/0 group-hover:border-accent/80 transition-all duration-300 z-20 pointer-events-none" />
+                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-accent/0 group-hover:border-accent/80 transition-all duration-300 z-20 pointer-events-none" />
 
-                {/* Cyber Gradient Shadow */}
-                <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/30 to-black/40 pointer-events-none" />
+                  {/* Compact Visual Preview Container */}
+                  <div className="relative h-36 sm:h-40 w-full overflow-hidden bg-black/95 border-b border-line">
+                    <Image
+                      src={cert.image}
+                      alt={`${cert.name} Cyber Credential Badge`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                    />
 
-                {/* Laser Scanline Effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/10 to-transparent h-10 w-full animate-[laserSweep_4s_easeInOut_infinite] pointer-events-none opacity-40 group-hover:opacity-80" />
+                    {/* Cyber Gradient Shadow */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-panel via-panel/20 to-black/45 pointer-events-none" />
 
-                {/* Top Overlay Badges */}
-                <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none">
-                  <span className="font-mono text-[9px] text-accent bg-[#06120c]/85 border border-accent/40 rounded-sm px-2 py-0.5 font-bold tracking-wider backdrop-blur-sm shadow-sm">
-                    {cert.code}
-                  </span>
+                    {/* Laser Scanline Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/15 to-transparent h-10 w-full animate-[laserSweep_4s_easeInOut_infinite] pointer-events-none opacity-30 group-hover:opacity-80" />
 
-                  <span className="inline-flex items-center gap-1 font-mono text-[9px] text-accent bg-[#06120c]/85 border border-accent/40 rounded-sm px-2 py-0.5 font-bold uppercase backdrop-blur-sm shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                    VERIFIED
-                  </span>
-                </div>
-
-                {/* Bottom Badge Level */}
-                <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between pointer-events-none">
-                  <span className="font-mono text-[10px] text-accent font-semibold px-1.5 py-0.5 rounded-sm bg-accent/15 border border-accent/30 backdrop-blur-sm">
-                    {cert.badgeLevel}
-                  </span>
-                  <span className="font-mono text-[10px] text-dim bg-black/70 px-1.5 py-0.5 rounded-sm border border-line">
-                    {cert.date}
-                  </span>
-                </div>
-              </div>
-
-              {/* Card Body: Title & Issuer */}
-              <div className="p-4 flex flex-col flex-1 justify-between gap-3">
-                <div>
-                  <h3 className="font-mono font-bold text-text text-sm sm:text-base leading-snug group-hover:text-accent transition-colors line-clamp-2">
-                    {cert.name}
-                  </h3>
-
-                  <p className="mt-1.5 text-xs text-muted flex items-center gap-1.5 truncate">
-                    <Building size={12} className="text-dim shrink-0" />
-                    <span className="truncate">{cert.issuer}</span>
-                  </p>
-                </div>
-
-                {/* Skills Chips */}
-                <div className="pt-2 border-t border-line/60">
-                  <div className="flex flex-wrap gap-1">
-                    {cert.skills.slice(0, 2).map((skill) => (
-                      <span
-                        key={skill}
-                        className="text-[9px] font-mono px-1.5 py-0.5 rounded-sm bg-surface-light border border-line text-muted truncate max-w-[140px]"
-                      >
-                        {skill}
+                    {/* Top Overlay Badges */}
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none z-10">
+                      <span className="font-mono text-[9px] text-accent bg-[#06120c]/85 border border-accent/40 rounded px-2 py-0.5 font-bold tracking-wider backdrop-blur-md shadow-sm flex items-center gap-1">
+                        <Shield size={9} className="text-accent" />
+                        {cert.code}
                       </span>
-                    ))}
-                    {cert.skills.length > 2 && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-sm bg-surface-light text-dim">
-                        +{cert.skills.length - 2}
+
+                      <span className="inline-flex items-center gap-1 font-mono text-[8px] text-accent bg-[#06120c]/85 border border-accent/40 rounded px-1.5 py-0.5 font-bold uppercase tracking-wider backdrop-blur-md shadow-sm">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                        VERIFIED
                       </span>
-                    )}
+                    </div>
+
+                    {/* Middle Hover Prompt */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px] z-10 pointer-events-none">
+                      <span className="font-mono text-[10px] font-bold text-accent bg-[#06120c]/90 px-2.5 py-1 rounded border border-accent/50 flex items-center gap-1.5 shadow-md">
+                        <Eye size={11} />
+                        <span>INSPECT</span>
+                      </span>
+                    </div>
+
+                    {/* Bottom Badge Classification & Year */}
+                    <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between pointer-events-none z-10">
+                      <span className="font-mono text-[9px] text-accent font-semibold px-1.5 py-0.2 rounded bg-accent/20 border border-accent/35 backdrop-blur-md">
+                        {cert.badgeLevel}
+                      </span>
+                      <span className="font-mono text-[9px] text-dim bg-black/75 px-1.5 py-0.2 rounded border border-line backdrop-blur-md flex items-center gap-1">
+                        <Calendar size={9} className="text-dim" />
+                        {cert.date}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Footer Action */}
-                <div className="pt-2 border-t border-line/40 flex items-center justify-between font-mono text-[11px] text-dim group-hover:text-accent transition-colors">
-                  <span className="text-[10px] uppercase font-bold tracking-wider">
-                    INSPECT CLEARANCE
-                  </span>
-                  <BadgeCheck size={14} className="text-accent" />
-                </div>
-              </div>
-            </article>
-          </Reveal>
-        ))}
+                  {/* Compact Card Body: Title, Issuer, Skills */}
+                  <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between gap-2.5">
+                    <div>
+                      {/* Category Tag */}
+                      <span className="text-[9px] font-mono text-dim tracking-wider uppercase mb-0.5 block">
+                        {`// ${cert.category}`}
+                      </span>
+
+                      {/* Certificate Name - Professional font scale */}
+                      <h3 className="font-mono font-semibold text-text text-xs sm:text-sm leading-snug group-hover:text-accent transition-colors line-clamp-1">
+                        {cert.name}
+                      </h3>
+
+                      {/* Issuer */}
+                      <p className="mt-1 text-[11px] text-muted flex items-center gap-1.5">
+                        <Building2 size={11} className="text-dim shrink-0" />
+                        <span className="truncate">{cert.issuer}</span>
+                      </p>
+                    </div>
+
+                    {/* Skills Chips - Clean & Minimal */}
+                    <div className="pt-2 border-t border-line/50">
+                      <div className="flex flex-wrap gap-1">
+                        {cert.skills.slice(0, 2).map((skill) => (
+                          <span
+                            key={skill}
+                            className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-surface-light border border-line/60 text-muted group-hover:border-accent/25 transition-colors truncate max-w-[130px]"
+                          >
+                            #{skill}
+                          </span>
+                        ))}
+                        {cert.skills.length > 2 && (
+                          <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-surface-light text-dim">
+                            +{cert.skills.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Footer Call to Action */}
+                    <div className="pt-2 border-t border-line/50 flex items-center justify-between font-mono text-[10px] text-dim group-hover:text-accent transition-colors">
+                      <span className="text-[10px] uppercase font-medium tracking-wider flex items-center gap-1">
+                        <FileCheck2 size={11} className="text-accent" />
+                        CLEARANCE RECORD
+                      </span>
+                      <ArrowUpRight
+                        size={13}
+                        className="text-dim group-hover:text-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+                      />
+                    </div>
+                  </div>
+                </article>
+              </Reveal>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
-      {/* FULL CREDENTIAL INSPECTION MODAL */}
+      {/* VIEW MORE / SHOW LESS TOGGLE BUTTON */}
+      {hasMore && (
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-panel/70 border border-line">
+          <div className="font-mono text-xs text-muted flex items-center gap-2 text-center sm:text-left">
+            <span className="text-accent font-bold">&gt;_</span>
+            <span>
+              {isExpanded
+                ? "Full clearance dossier expanded."
+                : `Showing 6 of ${filteredCerts.length} credentials (2 lines of 3).`}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full sm:w-auto font-mono text-xs font-bold px-6 py-2.5 rounded-lg border border-accent/50 bg-accent/10 text-accent hover:bg-accent hover:text-[#06120c] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(57,255,140,0.12)] hover:shadow-[0_0_25px_rgba(57,255,140,0.3)] active:scale-95"
+          >
+            {isExpanded ? (
+              <>
+                <span>COLLAPSE CREDENTIALS</span>
+                <ChevronUp size={15} />
+              </>
+            ) : (
+              <>
+                <span>VIEW MORE CERTIFICATES (+{remainingCount})</span>
+                <ChevronDown size={15} />
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* COMPACT & SCREEN-FITTED CREDENTIAL INSPECTION MODAL */}
       <AnimatePresence>
         {selectedCert && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 overflow-hidden"
             role="dialog"
             aria-modal="true"
             aria-labelledby={certModalId}
@@ -233,42 +333,42 @@ export default function Certifications() {
               className="fixed inset-0 bg-surface-overlay backdrop-blur-md cursor-pointer"
             />
 
-            {/* Modal Container */}
+            {/* Modal Container: Max 2rem margin (p-8 on parent), tight & fitting on any screen without scroll */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 16 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative w-full max-w-2xl bg-panel border-2 border-accent/40 rounded-md shadow-2xl overflow-hidden flex flex-col z-10 font-mono"
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="relative w-full max-w-lg bg-panel border-2 border-accent/40 rounded-lg shadow-2xl overflow-hidden flex flex-col z-10 font-mono max-h-[calc(100vh-4rem)]"
             >
               {/* Terminal Window Header */}
-              <div className="px-4 sm:px-6 py-3 border-b border-line bg-panel-raised flex items-center justify-between shrink-0">
+              <div className="px-3.5 sm:px-4 py-2 border-b border-line bg-panel-raised flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red/80 inline-block" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber/80 inline-block" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-accent/80 inline-block" />
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-red/80 inline-block" />
+                    <span className="w-2 h-2 rounded-full bg-amber/80 inline-block" />
+                    <span className="w-2 h-2 rounded-full bg-accent/80 inline-block" />
                   </div>
-                  <span className="text-dim text-xs ml-2 font-mono">
-                    clearance_credential_{selectedCert.code.toLowerCase()}.sh
+                  <span className="text-dim text-[11px] ml-1.5 font-mono truncate max-w-[200px]">
+                    clearance_{selectedCert.code.toLowerCase()}.sig
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => handleCopyCode(selectedCert.code)}
-                    className="flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-sm border border-line bg-panel text-muted hover:border-accent hover:text-accent transition-colors cursor-pointer"
+                    className="flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded border border-line bg-panel text-muted hover:border-accent hover:text-accent transition-colors cursor-pointer"
                     title="Copy Credential ID"
                   >
                     {copiedCode ? (
                       <>
-                        <Check size={12} className="text-accent" />
+                        <Check size={11} className="text-accent" />
                         <span className="text-accent">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy size={12} />
+                        <Copy size={11} />
                         <span>Copy ID</span>
                       </>
                     )}
@@ -278,71 +378,74 @@ export default function Certifications() {
                     type="button"
                     onClick={() => setSelectedCert(null)}
                     aria-label="Close credential view"
-                    className="p-1 rounded-sm text-dim hover:text-text hover:bg-panel-raised transition-colors cursor-pointer"
+                    className="p-1 rounded text-dim hover:text-text hover:bg-panel-raised transition-colors cursor-pointer"
                   >
-                    <X size={18} />
+                    <X size={15} />
                   </button>
                 </div>
               </div>
 
-              {/* Full-width Hacking Certificate Visual */}
-              <div className="relative h-56 sm:h-64 w-full bg-black overflow-hidden border-b border-line">
+              {/* Compact Certificate Visual Display */}
+              <div className="relative h-28 sm:h-32 w-full bg-black overflow-hidden border-b border-line shrink-0">
                 <Image
                   src={selectedCert.image}
                   alt={selectedCert.name}
                   fill
-                  sizes="(max-width: 768px) 100vw, 700px"
+                  sizes="(max-width: 768px) 100vw, 600px"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-panel via-transparent to-black/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-panel via-panel/30 to-black/50" />
 
                 {/* Insignia Overlay */}
-                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
-                  <div>
-                    <span className="font-mono text-xs text-accent font-bold px-2 py-0.5 rounded-sm bg-[#06120c]/90 border border-accent/40">
+                <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-end justify-between gap-2">
+                  <div className="truncate">
+                    <span className="font-mono text-[9px] text-accent font-bold px-1.5 py-0.2 rounded bg-[#06120c]/90 border border-accent/40 shadow">
                       {selectedCert.code}
                     </span>
-                    <h2 id={certModalId} className="text-lg sm:text-2xl font-bold text-white mt-2 drop-shadow-md">
+                    <h2
+                      id={certModalId}
+                      className="text-sm sm:text-base font-bold text-white mt-1 drop-shadow-md leading-tight truncate"
+                    >
                       {selectedCert.name}
                     </h2>
                   </div>
 
-                  <span className="inline-flex items-center gap-1.5 font-mono text-xs text-accent bg-[#06120c]/90 border border-accent/50 rounded-sm px-2.5 py-1 font-bold">
-                    <ShieldCheck size={14} className="text-accent" />
-                    CRYPTOGRAPHICALLY VERIFIED
+                  <span className="inline-flex items-center gap-1 font-mono text-[9px] text-accent bg-[#06120c]/90 border border-accent/50 rounded px-2 py-0.5 font-bold shrink-0">
+                    <ShieldCheck size={11} className="text-accent" />
+                    VERIFIED
                   </span>
                 </div>
               </div>
 
-              {/* Modal Body Details */}
-              <div className="p-5 sm:p-6 space-y-5 text-xs text-text bg-panel">
+              {/* Modal Body Details - Tight & Compact */}
+              <div className="p-3.5 space-y-2.5 text-xs text-text bg-panel overflow-y-auto">
                 {/* Details Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-sm bg-panel-raised border border-line">
-                    <span className="text-[10px] text-dim uppercase block">ISSUING AUTHORITY</span>
-                    <span className="text-xs font-bold text-text mt-1 block truncate">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="p-2 rounded bg-panel-raised border border-line">
+                    <span className="text-[9px] text-dim uppercase block">ISSUER</span>
+                    <span className="text-[11px] font-bold text-text mt-0.5 block truncate">
                       {selectedCert.issuer}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-sm bg-panel-raised border border-line">
-                    <span className="text-[10px] text-dim uppercase block">ISSUED YEAR</span>
-                    <span className="text-xs font-bold text-text mt-1 block flex items-center gap-1">
-                      <Calendar size={12} className="text-accent" />
+                  <div className="p-2 rounded bg-panel-raised border border-line">
+                    <span className="text-[9px] text-dim uppercase block">YEAR</span>
+                    <span className="text-[11px] font-bold text-text mt-0.5 block flex items-center gap-1">
+                      <Calendar size={10} className="text-accent" />
                       {selectedCert.date}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-sm bg-panel-raised border border-line">
-                    <span className="text-[10px] text-dim uppercase block">CLASSIFICATION</span>
-                    <span className="text-xs font-bold text-accent mt-1 block">
+                  <div className="p-2 rounded bg-panel-raised border border-line">
+                    <span className="text-[9px] text-dim uppercase block">LEVEL</span>
+                    <span className="text-[11px] font-bold text-accent mt-0.5 block truncate">
                       {selectedCert.badgeLevel}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-sm bg-panel-raised border border-line">
-                    <span className="text-[10px] text-dim uppercase block">DOMAIN</span>
-                    <span className="text-xs font-bold text-text mt-1 block">
+                  <div className="p-2 rounded bg-panel-raised border border-line">
+                    <span className="text-[9px] text-dim uppercase block">DOMAIN</span>
+                    <span className="text-[11px] font-bold text-text mt-0.5 block truncate">
                       {selectedCert.category}
                     </span>
                   </div>
@@ -350,49 +453,49 @@ export default function Certifications() {
 
                 {/* Verified Skills & Proficiencies */}
                 <div>
-                  <span className="text-[10px] text-dim uppercase tracking-wider font-bold block mb-2.5 flex items-center gap-1.5">
-                    <Zap size={12} className="text-accent" />
-                    <span>VERIFIED CORE COMPETENCIES</span>
+                  <span className="text-[9px] text-dim uppercase tracking-wider font-bold mb-1.5 flex items-center gap-1">
+                    <Zap size={10} className="text-accent" />
+                    <span>VERIFIED COMPETENCIES</span>
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {selectedCert.skills.map((skill) => (
                       <span
                         key={skill}
-                        className="px-3 py-1.5 rounded-sm bg-panel-raised border border-line text-xs font-mono text-text flex items-center gap-1.5"
+                        className="px-2 py-0.5 rounded bg-panel-raised border border-line text-[10px] font-mono text-text flex items-center gap-1"
                       >
-                        <CheckCircle2 size={13} className="text-accent" />
+                        <CheckCircle2 size={11} className="text-accent" />
                         <span>{skill}</span>
                       </span>
                     ))}
                   </div>
                 </div>
 
-                {/* Clearance Note */}
-                <div className="p-3.5 rounded-sm bg-accent/10 border border-accent/30 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={16} className="text-accent shrink-0" />
-                    <span className="text-[11px] text-text font-sans">
-                      Official credential authenticated for enterprise cybersecurity and defensive SOC deployments.
+                {/* Compact Clearance Note */}
+                <div className="p-2.5 rounded bg-accent/10 border border-accent/25 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-accent shrink-0" />
+                    <span className="text-[10px] text-text font-sans">
+                      Authenticated clearance for defensive SOC workflows & security engineering.
                     </span>
                   </div>
-                  <span className="shrink-0 text-[10px] font-mono text-accent font-bold border border-accent/40 bg-accent/15 px-2 py-0.5 rounded-sm">
-                    SOC READY
+                  <span className="shrink-0 text-[9px] font-mono text-accent font-bold border border-accent/40 bg-accent/15 px-1.5 py-0.5 rounded">
+                    AUTHENTIC
                   </span>
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="px-5 py-3.5 border-t border-line bg-panel-raised flex items-center justify-between shrink-0">
-                <span className="text-dim text-[11px] font-mono">
-                  Press <kbd className="px-1.5 py-0.5 rounded bg-panel border border-line text-text">ESC</kbd> to return
+              <div className="px-3.5 py-2 border-t border-line bg-panel-raised flex items-center justify-between shrink-0">
+                <span className="text-dim text-[10px] font-mono">
+                  Press <kbd className="px-1 py-0.2 rounded bg-panel border border-line text-text text-[9px]">ESC</kbd> to return
                 </span>
 
                 <button
                   type="button"
                   onClick={() => setSelectedCert(null)}
-                  className="px-4 py-1.5 rounded-sm bg-accent text-[#06120c] font-mono text-xs font-bold hover:bg-accent/90 transition-colors cursor-pointer shadow-sm"
+                  className="px-3 py-1 rounded bg-accent text-[#06120c] font-mono text-[11px] font-bold hover:bg-accent/90 transition-colors cursor-pointer shadow-sm"
                 >
-                  Close Clearance View
+                  Close View
                 </button>
               </div>
             </motion.div>
