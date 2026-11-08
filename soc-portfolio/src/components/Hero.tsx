@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { profile } from "@/data/content";
 import TerminalWindow from "./TerminalWindow";
+import CyberScanningEye from "./CyberScanningEye";
 import { ArrowDown, FileDown } from "lucide-react";
 
 const fadeUp = {
@@ -50,7 +51,38 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 grid-fade" aria-hidden="true" />
+      {/* Dynamic Cyber Background Engine (Dark & Light Mode Optimized) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        {/* Dark Mode: Holographic Threat Telemetry Mesh */}
+        <div
+          className="hidden dark:block absolute inset-0 bg-no-repeat bg-center bg-cover opacity-40 mix-blend-screen transition-opacity duration-700"
+          style={{
+            backgroundImage: "url('/cyber-threat-mesh.jpg')",
+            maskImage: "radial-gradient(ellipse 85% 75% at 50% 30%, black 30%, transparent 85%)",
+            WebkitMaskImage: "radial-gradient(ellipse 85% 75% at 50% 30%, black 30%, transparent 85%)",
+          }}
+        />
+        <div className="hidden dark:block absolute inset-0 grid-fade" />
+
+        {/* Light Mode: Real Cyber Threat Mesh Graphic (Properly Visible & High Contrast) */}
+        <div className="block dark:hidden absolute inset-0 transition-opacity duration-700">
+          {/* Subtle Top Emerald Ambient Glow */}
+          <div className="absolute top-0 inset-x-0 h-[520px] bg-[radial-gradient(ellipse_75%_55%_at_50%_0%,rgba(10,143,92,0.12),transparent_75%)]" />
+
+          {/* Actual Dedicated Light-Mode Threat Mesh Graphic */}
+          <div
+            className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-70 mix-blend-multiply transition-opacity duration-700"
+            style={{
+              backgroundImage: "url('/cyber-threat-mesh-light.jpg')",
+              maskImage: "radial-gradient(ellipse 90% 80% at 50% 35%, black 40%, transparent 92%)",
+              WebkitMaskImage: "radial-gradient(ellipse 90% 80% at 50% 35%, black 40%, transparent 92%)",
+            }}
+          />
+
+          {/* Clean Light-Mode Grid Overlay */}
+          <div className="absolute inset-0 grid-fade opacity-60" />
+        </div>
+      </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-14 pb-16 sm:pt-20 sm:pb-24 relative">
         <div className="grid lg:grid-cols-5 gap-8 items-start">
           <motion.div
@@ -60,7 +92,7 @@ export default function Hero() {
             animate="visible"
             variants={fadeUp}
           >
-            <TerminalWindow title="session — boot.sh">
+            <TerminalWindow title="session — boot.sh" className="panel-glass">
               <div className="font-mono text-sm sm:text-base leading-relaxed min-h-[220px]">
                 {LINES.slice(0, visibleLines + (charCount > 0 ? 1 : 0)).map(
                   (line, i) => {
@@ -139,7 +171,7 @@ export default function Hero() {
             variants={fadeUp}
           >
             {/* Profile Picture Card */}
-            <div className="panel rounded-md overflow-hidden">
+            <div className="panel panel-glass rounded-md overflow-hidden">
               <div className="panel-header flex items-center gap-2 px-4 py-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-red/70" />
                 <span className="w-2.5 h-2.5 rounded-full bg-amber/70" />
@@ -154,7 +186,7 @@ export default function Hero() {
               </div>
               <div className="flex flex-col items-center p-6 sm:p-8">
                 {/* Profile Image with Glow Ring */}
-                <div className="profile-ring relative">
+                <div className="profile-ring relative mb-4">
                   <div className="profile-ring-glow" />
                   <Image
                     src="/mypic.jpg"
@@ -164,10 +196,15 @@ export default function Hero() {
                     className="relative z-10 w-40 h-40 sm:w-48 sm:h-48 rounded-full object-cover border-2 border-accent/30"
                     priority
                   />
+
+                  {/* Scanning Eye HUD at bottom of image */}
+                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+                    <CyberScanningEye />
+                  </div>
                 </div>
 
                 {/* Name + Role */}
-                <div className="mt-5 text-center">
+                <div className="mt-4 text-center">
                   <h2 className="font-mono text-lg sm:text-xl font-bold text-text">
                     {profile.name}
                   </h2>
@@ -227,7 +264,7 @@ export default function Hero() {
             </div>
 
             {/* Threat Level Card */}
-            <div className="panel rounded-md p-4">
+            <div className="panel panel-glass rounded-md p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="font-mono text-[11px] text-dim uppercase tracking-wider">
                   Threat Assessment

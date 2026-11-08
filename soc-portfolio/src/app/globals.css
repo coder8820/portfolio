@@ -195,6 +195,35 @@ body {
   background: var(--surface);
 }
 
+/* ============================
+   GLASS / TRANSLUCENT HUD CARDS
+   ============================ */
+.panel-glass {
+  background: rgba(15, 22, 19, 0.72) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(57, 255, 140, 0.22) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.panel-glass .panel-header {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border-bottom: 1px solid rgba(57, 255, 140, 0.15) !important;
+}
+
+.light .panel-glass {
+  background: rgba(255, 255, 255, 0.74) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(10, 143, 92, 0.25) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.light .panel-glass .panel-header {
+  background: rgba(10, 143, 92, 0.04) !important;
+  border-bottom: 1px solid rgba(10, 143, 92, 0.15) !important;
+}
+
 .crt-dot {
   box-shadow: 0 0 6px currentColor;
 }
@@ -297,10 +326,10 @@ body {
 
 .light .grid-fade {
   background-image: linear-gradient(
-      rgba(10, 143, 92, 0.05) 1px,
+      rgba(10, 143, 92, 0.08) 1px,
       transparent 1px
     ),
-    linear-gradient(90deg, rgba(10, 143, 92, 0.05) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(10, 143, 92, 0.08) 1px, transparent 1px);
 }
 
 /* ============================
@@ -400,3 +429,37 @@ body {
   transform: translateY(-4px);
   box-shadow: var(--card-hover-shadow);
 }
+
+/* ============================
+   CYBER SCANNING EYE ANIMATIONS
+   ============================ */
+@keyframes eyePupilScan {
+  0%, 100% {
+    transform: translate(0px, 0px);
+  }
+  25% {
+    transform: translate(-5px, -0.5px);
+  }
+  50% {
+    transform: translate(0px, 0.5px);
+  }
+  75% {
+    transform: translate(5px, -0.5px);
+  }
+}
+
+@keyframes laserSweep {
+  0% {
+    left: 0%;
+    opacity: 0.2;
+  }
+  50% {
+    left: 96%;
+    opacity: 1;
+  }
+  100% {
+    left: 0%;
+    opacity: 0.2;
+  }
+}
+

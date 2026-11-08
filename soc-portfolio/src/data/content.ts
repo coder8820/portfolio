@@ -17,7 +17,86 @@ export const profile = {
   resumeUrl: "/resume.pdf", // drop your CV at public/resume.pdf
   summary:
     "Blue team–focused security analyst with hands-on experience building and tuning SIEM detections, hunting through logs, and analyzing network traffic. Comfortable across Wazuh, QRadar, Splunk, and packet-level tools — I like turning noisy data into clear, actionable alerts.",
+  specialization: "SOC Operations & Threat Hunting",
+  focus: "Detection Engineering & Packet Forensics",
+  methodology: "MITRE ATT&CK & NIST Incident Response",
 };
+
+export const aboutStats = [
+  {
+    label: "Detection Rules & Decoders",
+    value: "100+",
+    subtext: "Wazuh, QRadar & Sigma Rules",
+  },
+  {
+    label: "Lab Attack Scenarios",
+    value: "50+",
+    subtext: "Simulated & Defended",
+  },
+  {
+    label: "Incident Case Studies",
+    value: "05",
+    subtext: "Documented in SOC Format",
+  },
+  {
+    label: "Blue Team Commitment",
+    value: "24/7",
+    subtext: "Continuous Vigilance & Rigor",
+  },
+];
+
+export const homelabNodes = [
+  {
+    category: "SIEM & Correlation Core",
+    name: "Wazuh & Splunk Server",
+    tech: "Wazuh 4.x · Splunk Enterprise · OpenSearch",
+    role: "Centralized log ingestion, correlation searches, and custom alert rules.",
+    status: "Online",
+    statusColor: "text-accent border-accent/40 bg-accent/10",
+  },
+  {
+    category: "Network Telemetry Sensor",
+    name: "Suricata & Zeek Sensor",
+    tech: "pfSense Firewall · Zeek · Wireshark · SPAN Port",
+    role: "Real-time packet capture, network protocol analysis, and signature-based IDS/IPS inspection.",
+    status: "Active",
+    statusColor: "text-accent border-accent/40 bg-accent/10",
+  },
+  {
+    category: "Monitored Endpoints",
+    name: "Active Directory Lab",
+    tech: "Windows Server 2022 · Sysmon v15 · Ubuntu 22.04 LTS",
+    role: "Enterprise telemetry generation with advanced event log auditing (Event IDs 4688, 1, 3).",
+    status: "Protected",
+    statusColor: "text-blue border-blue/40 bg-blue/10",
+  },
+  {
+    category: "Adversary Emulation Sandbox",
+    name: "Threat Simulation Lab",
+    tech: "Kali Linux · Atomic Red Team · Cowrie Honeypot",
+    role: "Controlled MITRE ATT&CK technique execution to test detection efficacy and alert fidelity.",
+    status: "Isolated",
+    statusColor: "text-amber border-amber/40 bg-amber/10",
+  },
+];
+
+export const defensePhilosophy = [
+  {
+    title: "Signal Over Noise",
+    description:
+      "A rule generating 100 false positives paralyzes an entire team. Every alert must carry enriched context, high fidelity, and clear triage steps.",
+  },
+  {
+    title: "Packet-Level Verification",
+    description:
+      "Logs reveal what applications report; packet captures prove what crossed the wire. Rigorous forensics demands cross-validation at both layers.",
+  },
+  {
+    title: "Adversary Lifecycle Mapping",
+    description:
+      "Detections are systematically categorized by MITRE ATT&CK tactics to expose blind spots and preempt lateral movement before impact.",
+  },
+];
 
 export type Severity = "critical" | "high" | "medium" | "info";
 
