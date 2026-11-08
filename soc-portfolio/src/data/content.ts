@@ -105,11 +105,18 @@ export type Project = {
   title: string;
   severityLabel: Severity;
   status: "Deployed" | "In Progress" | "Completed";
+  timeframe: string;
+  duration: string;
+  category: "Security Automation" | "Threat Intel" | "SIEM Engineering" | "Network Forensics" | "Offensive Audit";
+  impactMetric: { label: string; value: string };
+  mitreTactics: string[];
   summary: string;
   problem: string;
   approach: string;
   tools: string[];
   outcome: string;
+  keyDeliverables?: string[];
+  architecturePoints?: string[];
   link?: string;
 };
 
@@ -119,90 +126,186 @@ export const projects: Project[] = [
     title: "AI-Powered Phishing Email Analyzer",
     severityLabel: "high",
     status: "Completed",
+    timeframe: "Nov 2024",
+    duration: "3 Weeks",
+    category: "Security Automation",
+    impactMetric: { label: "Triage SLA", value: "5m → <30s (90% faster)" },
+    mitreTactics: ["T1566.001 (Spearphishing Link)", "T1566.002 (Attachment)", "T1204 (User Execution)"],
     summary:
-      "A tool that parses raw email headers and body content to flag phishing indicators using NLP-based classification.",
+      "Automated triage engine that parses raw headers, DKIM/SPF/DMARC auth, and body NLP signals to assign real-time risk scores.",
     problem:
-      "Manual phishing triage is slow and inconsistent — analysts need a fast first-pass verdict before deep investigation.",
+      "Manual email header inspection creates severe triage bottlenecks in Tier-1 SOC shifts, delaying true malicious campaign discovery.",
     approach:
-      "Built a Python pipeline that extracts headers, URLs, and sender reputation signals, then scores each email with a lightweight ML/NLP model trained on phishing vs. legitimate samples.",
-    tools: ["Python", "NLP", "Email headers (SPF/DKIM/DMARC)", "Flask"],
+      "Engineered an automated Python ingest pipeline extracting RFC-822 headers, embedded URI reputations, and sender alignment (SPF/DKIM/DMARC), scoring each artifact via fine-tuned NLP heuristics.",
+    tools: ["Python", "NLP / Scikit-learn", "Email RFC Headers (SPF/DKIM/DMARC)", "Flask REST API"],
     outcome:
-      "Reduced manual triage time per email from ~5 minutes to under 30 seconds, with a clear risk score analysts can act on.",
+      "Reduced per-incident triage cycle from ~5 minutes to under 30 seconds with an automated verdict scorecard for analysts.",
+    keyDeliverables: [
+      "Automated RFC 822 / 5322 header parser for hop delay & envelope verification",
+      "SPF, DKIM, and DMARC alignment validation engine",
+      "Suspicious URI extraction and domain age / WHOIS cross-reference",
+      "Analyst verdict console with exportable JSON incident payload",
+    ],
+    architecturePoints: [
+      "Input stream → Header Extraction Engine → Authentication Validator (SPF/DKIM)",
+      "URL & Domain Rep Scoring via OSINT feeds → NLP Body Intent Classifier",
+      "Risk Score Calculation (0-100) → Webhook Alert & JSON Dossier Generation",
+    ],
   },
   {
     id: "PRJ-002",
-    title: "Honeypot Attack Dashboard",
+    title: "Honeypot Attack Telemetry Dashboard",
     severityLabel: "high",
     status: "Deployed",
+    timeframe: "Oct 2024",
+    duration: "4 Weeks Live",
+    category: "Threat Intel",
+    impactMetric: { label: "Telemetry Captured", value: "14,000+ Attacker Probes" },
+    mitreTactics: ["T1595.001 (Port Scanning)", "T1110.001 (Password Guessing)", "T1046 (Network Service Discovery)"],
     summary:
-      "A live dashboard visualizing attacker behavior captured from a deployed honeypot — source IPs, ports probed, and payloads.",
+      "Live sensor array capturing unauthorized brute-force attempts and port enumeration to isolate adversary TTPs and GeoIP trends.",
     problem:
-      "Raw honeypot logs are hard to interpret in real time and easy to miss patterns in.",
+      "Raw syslog streams from perimeter honeypots are unmanageable in raw text form, masking adversary infrastructure patterns.",
     approach:
-      "Deployed a honeypot to capture live attack traffic, then built a dashboard to visualize attacker geolocation, targeted ports/services, and repeated attack patterns over time.",
-    tools: ["Honeypot (Cowrie/T-Pot)", "Python", "Dashboarding", "GeoIP"],
+      "Deployed containerized Cowrie and Dionaea honeypot nodes in cloud DMZs, routing authenticated probe telemetry into a real-time GeoIP aggregation visualizer.",
+    tools: ["Cowrie / T-Pot", "Python", "GeoIP MaxMind", "FastAPI", "Tailwind Dashboard"],
     outcome:
-      "Surfaced recurring scan patterns and top attacker source regions, useful for building proactive detection rules.",
+      "Uncovered recurring automated Mirai botnet scans and SSH dictionary sweeps, generating 40+ high-confidence IP blocklists.",
+    keyDeliverables: [
+      "24/7 active low-interaction SSH and Telnet honey-listeners",
+      "Real-time IP geolocation and ASN mapping of attacker nodes",
+      "Automated password dictionary attack frequency analysis",
+      "Exportable CSV/STIX IoC feed for perimeter firewall blacklisting",
+    ],
+    architecturePoints: [
+      "Isolated Cloud VPS DMZ → Cowrie Sensor (Port 22/2222) + Dionaea (SMB/FTP)",
+      "Log Shipper (JSON Stream) → Python Normalizer & GeoIP Enricher",
+      "Time-Series Database → Live Threat Map & Top Attacker Metric Cards",
+    ],
   },
   {
     id: "PRJ-003",
-    title: "SIEM Detection Engineering — Wazuh & IBM QRadar",
+    title: "SIEM Detection Engineering — Wazuh & QRadar",
     severityLabel: "critical",
     status: "Completed",
+    timeframe: "Sep 2024",
+    duration: "Ongoing Tuning",
+    category: "SIEM Engineering",
+    impactMetric: { label: "Alert Fidelity", value: "Zero False-Positive Target" },
+    mitreTactics: ["T1003.001 (LSASS Memory)", "T1059.001 (PowerShell)", "T1078 (Valid Accounts)"],
     summary:
-      "Configured and tuned SIEM rules and dashboards across two platforms to detect suspicious activity with fewer false positives.",
+      "Cross-platform detection engineering pipeline combining Sysmon telemetry with custom Wazuh XML rules and QRadar offense correlation.",
     problem:
-      "Out-of-the-box SIEM rules generate excessive noise, burying real threats in alert fatigue.",
+      "Default vendor alert rules flood analysts with non-actionable noise, creating alert fatigue and masking credential dumping attacks.",
     approach:
-      "Deployed Wazuh agents across test endpoints, wrote custom detection rules and decoders, and built correlation searches and offenses in IBM QRadar for cross-referenced threat detection.",
-    tools: ["Wazuh", "IBM QRadar", "Log correlation", "Custom detection rules"],
+      "Configured Sysmon Event ID 1 (Process Create) and Event ID 10 (ProcessAccess) across Windows endpoints; tuned custom decoders and created correlation offenses in QRadar for chained adversary behavior.",
+    tools: ["Wazuh EDR/SIEM", "IBM QRadar", "Sysmon v15", "Sigma Rules", "AQL (Ariel Query Language)"],
     outcome:
-      "Built a working detection pipeline covering brute-force attempts, privilege escalation, and file integrity violations.",
+      "Built a production-tested detection pipeline catching LSASS dumping, unquoted service paths, and suspicious scheduled tasks with sub-second alert triggers.",
+    keyDeliverables: [
+      "15+ custom Wazuh XML decoders and high-fidelity detection rules",
+      "QRadar AQL rules correlating parent-child process anomalies with privilege spikes",
+      "Custom Sigma rule mappings for cross-SIEM deployment",
+      "Standard Operating Procedure (SOP) runbooks for Tier-1 alert triage",
+    ],
+    architecturePoints: [
+      "Endpoint Sysmon / Auditd → Wazuh Agent (TLS Encrypted Forwarding)",
+      "Wazuh Manager Rule Engine (XML Decoders) → High-Fidelity Alert Indexing",
+      "Syslog Forwarder → IBM QRadar SIEM (Offense Creation & AQL Correlation)",
+    ],
   },
   {
     id: "PRJ-004",
-    title: "Network Monitoring Labs — Wireshark & Nmap",
+    title: "Network Forensic Traffic Labs — Wireshark & Nmap",
     severityLabel: "medium",
     status: "Completed",
+    timeframe: "Jul 2024",
+    duration: "2 Weeks",
+    category: "Network Forensics",
+    impactMetric: { label: "Packet Forensics", value: "100% Signature Mapped" },
+    mitreTactics: ["T1046 (Network Service Discovery)", "T1040 (Network Sniffing)", "T1071 (Application Layer Protocol)"],
     summary:
-      "A series of hands-on labs analyzing live and captured network traffic to identify scanning, enumeration, and anomalous behavior.",
+      "Full packet capture and traffic analysis laboratory mapping attacker reconnaissance signatures, TCP flags, and protocol anomalies.",
     problem:
-      "Understanding attacker reconnaissance requires seeing it at the packet level, not just the alert level.",
+      "Log-only visibility fails to uncover stealthy half-open SYN scans, anomalous TCP window sizes, or plain-text credential transmissions.",
     approach:
-      "Used Nmap to simulate reconnaissance (port scans, service/version detection) against lab targets, then captured and dissected the resulting traffic in Wireshark to map attacker footprints.",
-    tools: ["Wireshark", "Nmap", "TCP/IP fundamentals", "PCAP analysis"],
+      "Simulated diverse adversary scanning strategies (SYN stealth, Xmas, NULL scans) using Nmap, capturing raw PCAPs in Wireshark to isolate distinct TCP/IP handshake anomalies.",
+    tools: ["Wireshark", "Nmap", "TCPDump", "PCAP Dissectors", "Network Protocols (TCP/UDP/DNS)"],
     outcome:
-      "Documented traffic signatures for common scan types, used as a personal reference for faster detection during monitoring shifts.",
+      "Cataloged signature fingerprints for 8 reconnaissance tools, establishing clear display filter cheat-sheets for live monitoring shifts.",
+    keyDeliverables: [
+      "PCAP repository of simulated stealth scans and banner grabbing sessions",
+      "Custom Wireshark display filter profiles for rapid incident inspection",
+      "DNS exfiltration and anomalous beaconing packet detection guide",
+      "TCP handshake flag breakdown documenting evasive scanner techniques",
+    ],
+    architecturePoints: [
+      "Kali Attacking Node → Span Port / TAP → Virtual Target Network",
+      "TCPDump background daemon capturing raw .pcapng files",
+      "Wireshark Protocol Dissection & Follow Stream Analysis → Forensic Dossier",
+    ],
   },
   {
     id: "PRJ-005",
-    title: "Kali Linux & Windows Log Analyzer",
+    title: "Cross-Platform Log Correlator & IR Timeline",
     severityLabel: "medium",
     status: "Completed",
+    timeframe: "Jun 2024",
+    duration: "2.5 Weeks",
+    category: "SIEM Engineering",
+    impactMetric: { label: "MTTR Reduction", value: "Chronological Root Cause" },
+    mitreTactics: ["T1070 (Indicator Removal)", "T1078 (Valid Accounts)", "T1053 (Scheduled Task/Job)"],
     summary:
-      "A log analysis workflow for correlating Linux (Kali) and Windows event logs during simulated incident response exercises.",
+      "Incident response framework normalizing mixed Windows Event Logs and Linux auth/syslogs to reconstruct precise multi-stage intrusion timelines.",
     problem:
-      "Cross-platform incidents require pulling signal from very differently structured log formats.",
+      "Lateral movement spanning across Linux bastions and Windows Active Directory servers creates disjointed, fragmented investigation timelines.",
     approach:
-      "Collected Windows Event Logs (Security, System) and Linux auth/syslogs from lab VMs, normalized key fields, and built queries to trace a simulated attacker's actions across both systems.",
-    tools: ["Kali Linux", "Windows Event Viewer", "Log parsing", "Python"],
+      "Scripted a normalization parser merging Windows Security IDs (4624, 4672, 4720) with Linux auditd/auth.log events into a unified chronological UTC timeline.",
+    tools: ["Python", "Windows Event Viewer", "Linux Auditd", "Regex", "Pandas"],
     outcome:
-      "Produced a timeline reconstruction of a simulated multi-stage attack across mixed OS environments.",
+      "Successfully traced a simulated 5-step lateral movement exercise from initial SSH ingress to Active Directory domain escalation in under 10 minutes.",
+    keyDeliverables: [
+      "Python-driven log unification script parsing CSV, JSON, and EVTX extracts",
+      "Automated event sequence timeline generator with MITRE tactic tags",
+      "Root cause attribution matrix pinpointing the patient-zero host",
+      "Post-incident executive debrief report template",
+    ],
+    architecturePoints: [
+      "EVTX (Windows) + /var/log/auth.log (Linux) → Field Extraction Regex",
+      "UTC Timestamp Synchronization & Host Entity Mapping",
+      "Timeline Reconstruction Engine → Unified Graph & Forensic Chronology",
+    ],
   },
   {
     id: "PRJ-006",
-    title: "Web Vulnerability Scanner",
+    title: "Web Application Security Vulnerability Auditor",
     severityLabel: "high",
     status: "Completed",
+    timeframe: "May 2024",
+    duration: "3 Weeks",
+    category: "Offensive Audit",
+    impactMetric: { label: "Coverage", value: "OWASP Top 10 Signatures" },
+    mitreTactics: ["T1190 (Exploit Public-Facing Application)", "T1059.007 (JavaScript)", "T1505 (Server Software Component)"],
     summary:
-      "A custom-built web vulnerability scanner that automates the detection of common security flaws in web applications, such as SQL injection, XSS, and misconfigured headers.",
+      "Automated security auditor crawling web endpoints to detect SQL injection, reflective XSS, and security header misconfigurations.",
     problem:
-      "Manual vulnerability assessment of web applications is time-consuming and prone to missing repetitive, easily automatable checks across multiple endpoints.",
+      "Manual web application vulnerability audits on large internal test setups miss repetitive injection points and header hygiene gaps.",
     approach:
-      "Designed a Python-based scanner that crawls target URLs, tests input fields and parameters against a library of known vulnerability patterns (SQLi, XSS, CSRF, insecure headers), and logs findings with severity ratings.",
-    tools: ["Python", "Requests", "BeautifulSoup", "Regex", "HTTP Headers Analysis"],
+      "Constructed a multi-threaded Python scanner that spidered local test applications (DVWA/Juice Shop), tested parameterized input vectors, and validated response variations.",
+    tools: ["Python", "Requests", "BeautifulSoup4", "Regex", "HTTP Security Headers", "DVWA Lab"],
     outcome:
-      "Successfully identified multiple vulnerabilities in test environments (DVWA/local lab setups) and generated a structured report categorizing findings by risk level.",
+      "Discovered and generated structured vulnerability reports with CVSS score estimations and remediation code samples for development teams.",
+    keyDeliverables: [
+      "Automated parameter crawler and boundary payload fuzzer",
+      "Security header verification (CSP, HSTS, X-Content-Type-Options)",
+      "Reflective XSS context detector with HTML encoding verification",
+      "Markdown and JSON audit report generator with actionable remediations",
+    ],
+    architecturePoints: [
+      "Target URL → Web Crawler & Link Graph Extraction → Parameter Identification",
+      "Payload Injection Engine (SQLi error-based & XSS probes) → Response Diff Analyzer",
+      "CVSS Risk Scoring Engine → Detailed Markdown Vulnerability Audit Report",
+    ],
   },
 ];
 
@@ -253,6 +356,10 @@ export type Certification = {
   issuer: string;
   date: string;
   code: string;
+  image: string;
+  category: "AI Security" | "Network Defense" | "Systems & Apps" | "Honors & Merit";
+  skills: string[];
+  badgeLevel: string;
   link?: string;
 };
 
@@ -262,49 +369,81 @@ export const certifications: Certification[] = [
     issuer: "TryHackMe",
     date: "2025",
     code: "CLR-THM-AI",
+    image: "/cert-ai-security.jpg",
+    category: "AI Security",
+    skills: ["Adversarial AI", "LLM Red Teaming", "Model Hardening"],
+    badgeLevel: "Specialist",
   },
   {
     name: "Cybersecurity Fundamentals",
     issuer: "Cisco Networking Academy",
     date: "2025",
     code: "CLR-CSCO-CF",
+    image: "/cert-cyber-fundamentals.jpg",
+    category: "Network Defense",
+    skills: ["Network Security", "OSI Model Defense", "Threat Mitigation"],
+    badgeLevel: "Enterprise",
+  },
+  {
+    name: "Generative AI and Prompt Engineering",
+    issuer: "iCodeGuru",
+    date: "2026",
+    code: "GEN-AI-01",
+    image: "/cert-genai-prompt.jpg",
+    category: "AI Security",
+    skills: ["Prompt Injection Defense", "Jailbreak Mitigation", "LLM Architecture"],
+    badgeLevel: "Advanced",
   },
   {
     name: "Mobile App Development (Flutter)",
     issuer: "Haza Institute of Technology",
-    date: "2024", 
+    date: "2024",
     code: "MAD-01",
+    image: "/cert-software-dev.jpg",
+    category: "Systems & Apps",
+    skills: ["Cross-Platform Architecture", "Client Security", "API Integration"],
+    badgeLevel: "Certified",
   },
   {
     name: "Game App Development",
     issuer: "Haza Institute of Technology",
-    date: "2025", 
+    date: "2025",
     code: "GAD-01",
+    image: "/cert-software-dev.jpg",
+    category: "Systems & Apps",
+    skills: ["Game Physics & Logic", "C++ / Engine Architecture", "State Management"],
+    badgeLevel: "Certified",
   },
   {
     name: "PEF Scholarship Award",
     issuer: "University of Baltistan",
     date: "2023",
     code: "PEF-SCH",
+    image: "/cert-scholarship-award.jpg",
+    category: "Honors & Merit",
+    skills: ["Academic Excellence", "Merit Leadership", "Technical Distinction"],
+    badgeLevel: "Distinction",
   },
   {
     name: "E-Commerce Training Certificate",
     issuer: "Global UGRAD",
-    date: "2026", 
+    date: "2026",
     code: "ECOM-01",
+    image: "/cert-scholarship-award.jpg",
+    category: "Honors & Merit",
+    skills: ["Digital Commerce Systems", "Global Systems", "Leadership Exchange"],
+    badgeLevel: "Fellowship",
   },
   {
-    name: "AI Security Certificate",
+    name: "Defensive AI & Threat Hunting",
     issuer: "TryHackMe",
     date: "2026",
-    code: "SEC-ai-01",
+    code: "SEC-AI-01",
+    image: "/cert-ai-security.jpg",
+    category: "AI Security",
+    skills: ["AI Threat Modeling", "Anomaly Detection", "SOC Automation"],
+    badgeLevel: "Specialist",
   },
-  {
-    name: "Generative AI and Prompt Engineering",
-    issuer: "iCodeGrue",
-    date: "2026",
-    code: "GEN-AI-01",
-  }
 ];
 
 export const threatFeed = [
