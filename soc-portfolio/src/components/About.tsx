@@ -117,6 +117,28 @@ export default function About() {
                 </dd>
               </div>
 
+              {/* Education */}
+              <div className="grid grid-cols-[115px_1fr] sm:grid-cols-[125px_1fr] items-start gap-3 py-2.5 px-1.5 rounded-sm hover:bg-accent/5 transition-colors">
+                <dt className="flex items-center gap-1.5 text-accent font-semibold tracking-wider text-[11px] uppercase shrink-0">
+                  <span className="text-accent/60 text-[9px]">&gt;</span>
+                  <span>education</span>
+                </dt>
+                <dd className="text-right sm:text-left text-xs leading-relaxed">
+                  <span className="text-text font-bold">{profile.education.degree}</span>
+                  <span className="text-dim mx-1.5">at</span>
+                  <a
+                    href={profile.education.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-accent font-semibold hover:underline transition-colors"
+                    title="University of Baltistan, Skardu Official Website"
+                  >
+                    <span>{profile.education.institution}</span>
+                    <ExternalLink size={11} className="shrink-0 text-accent/70" />
+                  </a>
+                </dd>
+              </div>
+
               {/* Specialization */}
               <div className="grid grid-cols-[115px_1fr] sm:grid-cols-[125px_1fr] items-start gap-3 py-2.5 px-1.5 rounded-sm hover:bg-accent/5 transition-colors">
                 <dt className="flex items-center gap-1.5 text-accent font-semibold tracking-wider text-[11px] uppercase shrink-0">

@@ -9,23 +9,23 @@ export default function CyberScanningEye() {
     <div
       onMouseEnter={() => setLocked(true)}
       onMouseLeave={() => setLocked(false)}
-      className="group relative flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-panel border border-accent/40 shadow-[0_2px_10px_rgba(0,0,0,0.06),0_1px_3px_rgba(10,143,92,0.12)] dark:bg-[#070d0a]/95 dark:border-accent/40 dark:shadow-[0_0_18px_rgba(57,255,140,0.2)] transition-all duration-300 hover:border-accent hover:shadow-[0_4px_16px_rgba(10,143,92,0.22)] dark:hover:shadow-[0_0_24px_rgba(57,255,140,0.4)] select-none cursor-crosshair"
+      className="group relative flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-panel border border-accent/40 shadow-sm transition-all duration-300 hover:border-accent hover:shadow-md select-none cursor-crosshair backdrop-blur-md"
       title="Optical Threat Scanner // Hover to acquire target lock"
     >
       {/* Outer corner cyber brackets */}
-      <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-accent pointer-events-none" />
-      <div className="absolute -top-1 -right-1 w-2 h-2 border-t border-r border-accent pointer-events-none" />
-      <div className="absolute -bottom-1 -left-1 w-2 h-2 border-b border-l border-accent pointer-events-none" />
-      <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-accent pointer-events-none" />
+      <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-accent/70 pointer-events-none" />
+      <div className="absolute -top-1 -right-1 w-2 h-2 border-t border-r border-accent/70 pointer-events-none" />
+      <div className="absolute -bottom-1 -left-1 w-2 h-2 border-b border-l border-accent/70 pointer-events-none" />
+      <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-accent/70 pointer-events-none" />
 
       {/* Cyber Eye Viewport */}
       <div className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shrink-0">
         {/* Pulsing aperture background aura */}
-        <div className="absolute inset-0 rounded-full bg-accent/20 dark:bg-accent/15 animate-ping opacity-25 pointer-events-none" />
+        <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping opacity-25 pointer-events-none" />
 
         {/* Rotating outer aperture ring */}
         <svg
-          className="absolute inset-0 w-full h-full text-accent/70 dark:text-accent/50 animate-[spin_10s_linear_infinite]"
+          className="absolute inset-0 w-full h-full text-accent/60 animate-[spin_10s_linear_infinite]"
           viewBox="0 0 40 40"
         >
           <circle
@@ -41,7 +41,7 @@ export default function CyberScanningEye() {
 
         {/* Counter-rotating inner reticle */}
         <svg
-          className="absolute inset-1 w-full h-full text-accent/80 dark:text-accent/60 animate-[spin_6s_linear_infinite_reverse]"
+          className="absolute inset-1 w-full h-full text-accent/70 animate-[spin_6s_linear_infinite_reverse]"
           viewBox="0 0 36 36"
         >
           <circle
@@ -58,7 +58,7 @@ export default function CyberScanningEye() {
         {/* Main Eye Graphics */}
         <div className="relative w-7 h-5 sm:w-8 sm:h-5.5 overflow-hidden flex items-center justify-center">
           <svg
-            className="w-full h-full text-accent drop-shadow-sm dark:drop-shadow-[0_0_5px_var(--accent)]"
+            className="w-full h-full text-accent drop-shadow-sm"
             viewBox="0 0 44 26"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -101,27 +101,24 @@ export default function CyberScanningEye() {
           {/* Animated Scanning Iris & Pupil */}
           <div className="absolute inset-0 flex items-center justify-center animate-[eyePupilScan_4.5s_easeInOut_infinite] pointer-events-none">
             {/* Iris */}
-            <div className="relative w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border-2 border-accent flex items-center justify-center bg-accent/25 shadow-sm dark:shadow-[0_0_6px_var(--accent)]">
+            <div className="relative w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border-2 border-accent flex items-center justify-center bg-accent/20 shadow-sm">
               {/* Radial tick lines */}
               <div className="absolute inset-0.5 border border-dashed border-accent/80 rounded-full" />
               {/* Pupil Core */}
-              <div className="w-2 h-2 rounded-full bg-accent flex items-center justify-center shadow-sm dark:shadow-[0_0_8px_var(--accent)]">
+              <div className="w-2 h-2 rounded-full bg-accent flex items-center justify-center shadow-sm">
                 {/* Center target laser dot */}
-                <div className="w-0.5 h-0.5 rounded-full bg-panel dark:bg-[#0a0f0d]" />
+                <div className="w-0.5 h-0.5 rounded-full bg-panel" />
               </div>
             </div>
           </div>
 
           {/* Vertical Laser Scanline */}
-          <div className="absolute inset-y-0 w-0.5 bg-accent shadow-[0_0_6px_var(--accent)] dark:shadow-[0_0_8px_#39ff8c,0_0_14px_#39ff8c] animate-[laserSweep_2.2s_easeInOut_infinite] pointer-events-none" />
-
-          {/* Faint CRT scanline overlay (dark mode only) */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_2px] pointer-events-none opacity-0 dark:opacity-30" />
+          <div className="absolute inset-y-0 w-0.5 bg-accent shadow-[0_0_8px_var(--accent)] animate-[laserSweep_2.2s_easeInOut_infinite] pointer-events-none" />
         </div>
       </div>
 
       {/* Hairline Divider */}
-      <div className="h-6 w-[1px] bg-line/80 dark:bg-accent/20 mx-0.5" />
+      <div className="h-6 w-[1px] bg-line mx-0.5" />
 
       {/* Professional Telemetry Readout */}
       <div className="flex flex-col text-left justify-center pr-1">
@@ -149,7 +146,7 @@ export default function CyberScanningEye() {
             className={`px-1.5 py-0.5 rounded-sm font-semibold tracking-wider text-[8.5px] border ${
               locked
                 ? "bg-red/10 border-red/40 text-red"
-                : "bg-accent/10 border-accent/40 text-accent"
+                : "bg-accent/15 border-accent/40 text-accent font-bold"
             }`}
           >
             {locked ? "VERIFIED" : "ACTIVE"}

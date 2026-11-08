@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { profile } from "@/data/content";
 import TerminalWindow from "./TerminalWindow";
-import CyberScanningEye from "./CyberScanningEye";
+import HackerAvatar from "./HackerAvatar";
 import { ArrowDown, FileDown } from "lucide-react";
 
 const fadeUp = {
@@ -185,23 +184,12 @@ export default function Hero() {
                 </div>
               </div>
               <div className="flex flex-col items-center p-6 sm:p-8">
-                {/* Profile Image with Glow Ring */}
-                <div className="profile-ring relative mb-4">
-                  <div className="profile-ring-glow" />
-                  <Image
-                    src="/mypic.jpg"
-                    alt="Kumail Abbas — SOC Analyst"
-                    width={240}
-                    height={240}
-                    className="relative z-10 w-40 h-40 sm:w-48 sm:h-48 rounded-full object-cover border-2 border-accent/30"
-                    priority
-                  />
-
-                  {/* Scanning Eye HUD at bottom of image */}
-                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
-                    <CyberScanningEye />
-                  </div>
-                </div>
+                {/* Interactive Cyber Hacker Avatar (Hover / Click Dual-Identity Reveal) */}
+                <HackerAvatar
+                  primarySrc="/mypic.jpg"
+                  secondarySrc="/mypic2.png"
+                  name={`${profile.name} — ${profile.role}`}
+                />
 
                 {/* Name + Role */}
                 <div className="mt-4 text-center">

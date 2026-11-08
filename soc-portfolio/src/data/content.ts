@@ -10,6 +10,11 @@ export const profile = {
   tagline:
     "Monitoring, detecting, and responding to threats — one log line at a time.",
   location: "Pakistan",
+  education: {
+    degree: "BSCS",
+    institution: "University of Baltistan, Skardu",
+    url: "https://uobs.edu.pk/",
+  },
   email: "coder8820@gmail.com",
   github: "https://github.com/coder8820",
   linkedin: "https://www.linkedin.com/in/kumail-abbas-security/",
