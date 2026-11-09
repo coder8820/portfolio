@@ -48,6 +48,7 @@ const LABEL_CLASS = 'mb-1.5 block font-mono text-xs text-muted';
 const ATTACHMENT_TARGET_BYTES = 26 * 1024; // compressed binary budget
 const ATTACHMENT_MAX_DIM = 1280; // px — longest edge before quality loop
 const ATTACHMENT_INPUT_LIMIT = 10 * 1024 * 1024; // pre-compression input cap
+const SUBMISSION_COOLDOWN_MS = 60 * 1000; // 60 seconds anti-flood cooldown
 
 // Resize + re-encode the image on a canvas, stepping quality down
 // until the base64 output fits inside the EmailJS request budget.
@@ -109,6 +110,7 @@ export default function ContactPanel() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [status, setStatus] = useState<FormStatus>('idle');
   const [feedback, setFeedback] = useState('');
+  const [botHoneypot, setBotHoneypot] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   // hydration-safe "client-only" flag without setState-in-effect
@@ -128,6 +130,7 @@ export default function ContactPanel() {
     setForm(EMPTY_FORM);
     setStatus('idle');
     setFeedback('');
+    setBotHoneypot('');
     if (fileRef.current) fileRef.current.value = '';
   }, []);
 
@@ -196,6 +199,31 @@ export default function ContactPanel() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 1. Anti-bot Honeypot trap check
+    if (botHoneypot.trim()) {
+      // Bot filled hidden field: pretend success to deceive bot without consuming EmailJS quota
+      setStatus('success');
+      setFeedback('Message sent successfully!');
+      setTimeout(closePanel, 1500);
+      return;
+    }
+
+    // 2. Client-side Anti-Spam / Rate-limiting cooldown check
+    try {
+      const lastTs = sessionStorage.getItem('last_contact_ts');
+      if (lastTs) {
+        const elapsed = Date.now() - parseInt(lastTs, 10);
+        if (elapsed < SUBMISSION_COOLDOWN_MS) {
+          const remaining = Math.ceil((SUBMISSION_COOLDOWN_MS - elapsed) / 1000);
+          setStatus('error');
+          setFeedback(`Rate limit active. Please wait ${remaining}s before sending another message.`);
+          return;
+        }
+      }
+    } catch {
+      // Ignore sessionStorage disabled/unavailable edge cases
+    }
+
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
       setStatus('error');
       setFeedback('All required fields must be filled.');
@@ -233,6 +261,12 @@ export default function ContactPanel() {
       }
 
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
+
+      try {
+        sessionStorage.setItem('last_contact_ts', Date.now().toString());
+      } catch {
+        // Ignore storage errors
+      }
 
       setStatus('success');
       setFeedback('Message sent successfully!');
@@ -336,6 +370,24 @@ export default function ContactPanel() {
                 onSubmit={onSubmit}
                 className="flex flex-1 flex-col overflow-hidden"
               >
+                {/* Anti-bot Honeypot field (hidden from legitimate users, trapped by bots) */}
+                <div
+                  aria-hidden="true"
+                  className="opacity-0 absolute -left-[9999px] h-0 w-0 overflow-hidden pointer-events-none"
+                  style={{ display: 'none' }}
+                >
+                  <label htmlFor="cp-hp-field">Leave this field blank</label>
+                  <input
+                    id="cp-hp-field"
+                    type="text"
+                    name="_hp_security_check"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={botHoneypot}
+                    onChange={(e) => setBotHoneypot(e.target.value)}
+                  />
+                </div>
+
                 <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
                   <div>
                     <label htmlFor="cp-name" className={LABEL_CLASS}>
