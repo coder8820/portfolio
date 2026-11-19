@@ -23,6 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem("theme");var p=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";var t=s==="light"||s==="dark"?s:p;if(t==="light"){document.documentElement.classList.add("light");}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-bg text-text">
         <ThemeProvider>{children}</ThemeProvider>
       </body>

@@ -115,10 +115,6 @@
 html {
   scroll-behavior: smooth;
   min-height: 100%;
-  /* Ensure all CSS-variable-driven colors transition together */
-  transition: --bg 0.3s ease, --bg-panel 0.3s ease, --bg-panel-raised 0.3s ease,
-    --line 0.3s ease, --text 0.3s ease, --text-muted 0.3s ease,
-    --text-dim 0.3s ease, --accent 0.3s ease, --accent-dim 0.3s ease;
 }
 
 body {
@@ -129,8 +125,6 @@ body {
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   background-image: var(--body-gradient), var(--body-scanline);
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease,
-    background-image 0.3s ease;
 }
 
 /* ============================
@@ -139,43 +133,53 @@ body {
    ============================ */
 .hero-bg-dark {
   opacity: 0.4;
+  transition: opacity 0.3s ease;
 }
 
 .hero-bg-light {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .light .hero-bg-dark {
-  opacity: 0;
+  opacity: 0 !important;
   pointer-events: none;
 }
 
 .light .hero-bg-light {
-  opacity: 1;
+  opacity: 1 !important;
   pointer-events: auto;
 }
 
 /* ============================
-   GLOBAL THEME TRANSITION
-   Ensures all variable-driven properties
-   transition simultaneously on theme toggle
+   SYNCHRONIZED THEME TRANSITION
+   Ensures all elements (Navbar, Body, Footer,
+   StatusBar, Panels, Text, Borders) transition
+   at the exact same time without visual lag
    ============================ */
-*:not([class*="animate-"]):not(.ticker-track):not(.scanline):not(.profile-ring-glow) {
-  transition: color 0.3s ease, background-color 0.3s ease, background 0.3s ease,
-    border-color 0.3s ease, box-shadow 0.3s ease, outline-color 0.3s ease,
-    fill 0.3s ease, stroke 0.3s ease, opacity 0.3s ease;
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease,
+              fill 0.3s ease,
+              stroke 0.3s ease,
+              box-shadow 0.3s ease,
+              opacity 0.3s ease !important;
+  transition-delay: 0s !important;
 }
 
-/* Keep existing transition behavior for interactive components */
+/* Base transitions for panels and cards */
 .panel {
   transition: background 0.3s ease, border-color 0.3s ease,
     box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease,
-    background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ============================

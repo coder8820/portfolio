@@ -40,9 +40,15 @@ function subscribe(callback: () => void) {
   return () => listeners.delete(callback);
 }
 
-function setThemeTo(next: Theme) {
+function setThemeTo(next: Theme, withTransition = true) {
   currentTheme = next;
   if (typeof document !== "undefined") {
+    if (withTransition) {
+      document.documentElement.classList.add("theme-transitioning");
+      window.setTimeout(() => {
+        document.documentElement.classList.remove("theme-transitioning");
+      }, 300);
+    }
     document.documentElement.classList.toggle("light", next === "light");
     localStorage.setItem("theme", next);
   }
@@ -60,11 +66,11 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
         : window.matchMedia("(prefers-color-scheme: light)").matches
           ? "light"
           : "dark";
-    if (currentTheme !== initial) setThemeTo(initial);
+    if (currentTheme !== initial) setThemeTo(initial, false);
   }, []);
 
   const toggle = useCallback(() => {
-    setThemeTo(currentTheme === "dark" ? "light" : "dark");
+    setThemeTo(currentTheme === "dark" ? "light" : "dark", true);
   }, []);
 
   return (
