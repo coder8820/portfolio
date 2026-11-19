@@ -8,10 +8,12 @@ import Projects from "@/components/Projects";
 import Certifications from "@/components/Certifications";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import CyberSpiderBackground from "@/components/CyberSpiderBackground";
 
 export default function Home() {
   return (
     <>
+      <CyberSpiderBackground />
       <StatusBar />
       <Nav />
       <main className="flex-1">
