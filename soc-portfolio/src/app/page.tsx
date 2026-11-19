@@ -2,7 +2,6 @@ import StatusBar from "@/components/StatusBar";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
-import ThreatLab from "@/components/ThreatLab";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
 import Certifications from "@/components/Certifications";
@@ -22,7 +21,6 @@ export default function Home() {
         <Skills />
         <Projects />
         <Certifications />
-        <ThreatLab />
         <Contact />
       </main>
       <Footer />

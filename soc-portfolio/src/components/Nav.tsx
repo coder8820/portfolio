@@ -17,7 +17,6 @@ const links: NavLink[] = [
   { href: "#skills", label: "skills", path: "~/skills" },
   { href: "#projects", label: "projects", path: "~/projects" },
   { href: "#certifications", label: "certs", path: "~/certs" },
-  { href: "#threat-lab", label: "threat-lab", path: "~/threat-lab" },
   { href: "#contact", label: "contact", path: "~/contact" },
 ];
 
@@ -31,7 +30,7 @@ export default function Nav() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
 
-      const sectionIds = ["about", "skills", "projects", "certifications", "threat-lab", "contact"];
+      const sectionIds = ["about", "skills", "projects", "certifications", "contact"];
       const scrollPosition = window.scrollY + 200;
 
       for (let i = sectionIds.length - 1; i >= 0; i--) {
