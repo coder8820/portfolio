@@ -39,45 +39,6 @@
   --surface-overlay: rgba(0, 0, 0, 0.6);
 }
 
-/* ============================
-   LIGHT THEME
-   ============================ */
-.light {
-  --bg: #f0f4f8;
-  --bg-panel: #ffffff;
-  --bg-panel-raised: #f7f9fb;
-  --line: #d1d9e0;
-  --text: #1a2332;
-  --text-muted: #5a6a7a;
-  --text-dim: #8a96a4;
-  --accent: #0a8f5c;
-  --accent-dim: #067a4c;
-  --amber: #d4890a;
-  --red: #d93025;
-  --blue: #1a73e8;
-
-  --body-gradient: radial-gradient(
-    ellipse 80% 50% at 50% -10%,
-    rgba(10, 143, 92, 0.06),
-    transparent
-  );
-  --body-scanline: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.008) 0px,
-    rgba(0, 0, 0, 0.008) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04);
-  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --surface: rgba(0, 0, 0, 0.03);
-  --surface-light: rgba(0, 0, 0, 0.015);
-  --surface-tint: rgba(0, 0, 0, 0.02);
-  --surface-muted: rgba(0, 0, 0, 0.04);
-  --surface-input: rgba(0, 0, 0, 0.03);
-  --surface-overlay: rgba(0, 0, 0, 0.4);
-}
 
 /* ============================
    TAILWIND THEME MAPPING
@@ -127,50 +88,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ============================
-   HERO BACKGROUND THEME TOGGLE
-   (uses .light class, not dark: variant)
-   ============================ */
-.hero-bg-dark {
-  opacity: 0.4;
-  transition: opacity 0.3s ease;
-}
-
-.hero-bg-light {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.light .hero-bg-dark {
-  opacity: 0 !important;
-  pointer-events: none;
-}
-
-.light .hero-bg-light {
-  opacity: 1 !important;
-  pointer-events: auto;
-}
-
-/* ============================
-   SYNCHRONIZED THEME TRANSITION
-   Ensures all elements (Navbar, Body, Footer,
-   StatusBar, Panels, Text, Borders) transition
-   at the exact same time without visual lag
-   ============================ */
-html.theme-transitioning,
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition: background-color 0.3s ease,
-              border-color 0.3s ease,
-              color 0.3s ease,
-              fill 0.3s ease,
-              stroke 0.3s ease,
-              box-shadow 0.3s ease,
-              opacity 0.3s ease !important;
-  transition-delay: 0s !important;
-}
 
 /* Base transitions for panels and cards */
 .panel {
@@ -202,9 +119,6 @@ html.theme-transitioning *::after {
   color: #06120c;
 }
 
-.light ::selection {
-  color: #ffffff;
-}
 
 /* ============================
    SCROLLBAR
@@ -265,18 +179,6 @@ html.theme-transitioning *::after {
   border-bottom: 1px solid rgba(57, 255, 140, 0.15) !important;
 }
 
-.light .panel-glass {
-  background: rgba(255, 255, 255, 0.74) !important;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(10, 143, 92, 0.25) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-
-.light .panel-glass .panel-header {
-  background: rgba(10, 143, 92, 0.04) !important;
-  border-bottom: 1px solid rgba(10, 143, 92, 0.15) !important;
-}
 
 .crt-dot {
   box-shadow: 0 0 6px currentColor;
@@ -332,14 +234,6 @@ html.theme-transitioning *::after {
   animation: scan 6s linear infinite;
 }
 
-.light .scanline::before {
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(10, 143, 92, 0.04),
-    transparent
-  );
-}
 
 @keyframes ticker {
   0% {
@@ -359,10 +253,6 @@ html.theme-transitioning *::after {
   box-shadow: 0 0 10px rgba(57, 255, 140, 0.2);
 }
 
-.light .glitch-hover:hover {
-  text-shadow: 0 0 6px rgba(10, 143, 92, 0.5);
-  box-shadow: 0 0 10px rgba(10, 143, 92, 0.12);
-}
 
 .grid-fade {
   background-image: linear-gradient(
@@ -378,13 +268,6 @@ html.theme-transitioning *::after {
   );
 }
 
-.light .grid-fade {
-  background-image: linear-gradient(
-      rgba(10, 143, 92, 0.08) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(10, 143, 92, 0.08) 1px, transparent 1px);
-}
 
 /* ============================
    PROFILE RING GLOW
@@ -448,27 +331,6 @@ html.theme-transitioning *::after {
   50% { transform: scale(1.06); opacity: 0.3; }
 }
 
-.light .profile-ring-glow {
-  opacity: 0.35;
-  filter: blur(10px);
-}
-
-.light .profile-ring::after {
-  border-color: var(--accent);
-  opacity: 0.1;
-}
-
-/* Light mode scanning eye optimization */
-.light [title*="Optical Threat Scanner"] {
-  background-color: #ffffff !important;
-  border-color: rgba(10, 143, 92, 0.45) !important;
-  box-shadow: 0 4px 14px rgba(10, 143, 92, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
-}
-
-.light [title*="Optical Threat Scanner"]:hover {
-  border-color: var(--accent) !important;
-  box-shadow: 0 6px 20px rgba(10, 143, 92, 0.22) !important;
-}
 
 /* ============================
    SECTION FADE-IN ANIMATION

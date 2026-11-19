@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import { profile } from "@/data/content";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, Terminal, ShieldCheck, Radio } from "lucide-react";
+import { Menu, X, Terminal, ShieldCheck, Radio } from "lucide-react";
 import ContactPanel from "./ContactPanel";
-import { useTheme } from "./ThemeProvider";
 
 interface NavLink {
   href: string;
@@ -26,7 +25,6 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const [scrolled, setScrolled] = useState(false);
-  const { theme, toggle } = useTheme();
 
   // Scroll spy to highlight active section & detect scroll depth
   useEffect(() => {
@@ -145,7 +143,7 @@ export default function Nav() {
           })}
         </div>
 
-        {/* Controls: Live Status, Contact, Theme Toggle, Mobile Burger */}
+        {/* Controls: Live Status, Contact, Mobile Burger */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Live Telemetry Node Badge */}
           <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded border border-line bg-surface text-[10px] text-muted">
@@ -157,20 +155,6 @@ export default function Nav() {
           {/* Quick Contact Modal / Drawer */}
           <ContactPanel />
 
-          {/* Cyber Theme Toggle Button */}
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            className="group relative flex h-8 w-8 items-center justify-center rounded border border-line bg-surface text-muted transition-all duration-300 hover:border-accent/50 hover:text-accent hover:shadow-[0_0_12px_rgba(57,255,140,0.15)] cursor-pointer"
-            title={`Toggle Theme [${theme.toUpperCase()}]`}
-          >
-            {theme === "dark" ? (
-              <Sun size={14} className="group-hover:rotate-90 transition-transform duration-300" />
-            ) : (
-              <Moon size={14} className="group-hover:-rotate-45 transition-transform duration-300 text-text" />
-            )}
-          </button>
 
           {/* Mobile Menu Hamburger Button */}
           <button

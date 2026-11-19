@@ -7,7 +7,6 @@ import "@fontsource/ibm-plex-sans/500.css";
 import "@fontsource/ibm-plex-sans/600.css";
 import "@fontsource/ibm-plex-sans/700.css";
 import "./globals.css";
-import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "SOC Analyst | Blue Team Portfolio",
@@ -22,16 +21,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem("theme");var p=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";var t=s==="light"||s==="dark"?s:p;if(t==="light"){document.documentElement.classList.add("light");}}catch(e){}})();`,
-          }}
-        />
-      </head>
+    <html lang="en" className="h-full antialiased dark">
       <body className="min-h-full flex flex-col bg-bg text-text">
-        <ThemeProvider>{children}</ThemeProvider>
+        {children}
       </body>
     </html>
   );

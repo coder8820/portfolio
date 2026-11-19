@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useTheme } from "./ThemeProvider";
 
 interface SpiderLeg {
   side: -1 | 1; // -1 = Left (-Y in local space), 1 = Right (+Y in local space)
@@ -31,7 +30,6 @@ interface SilkPoint {
 
 export default function CyberSpiderBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const { theme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -176,16 +174,14 @@ export default function CyberSpiderBackground() {
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      const isLight = document.documentElement.classList.contains("light");
-
-      // High-contrast cyber palette
-      const accent = isLight ? "#0a8f5c" : "#39ff8c";
-      const ocularRed = isLight ? "#d93025" : "#ff3333";
-      const chitinDark = isLight ? "#1a2432" : "#070c0a";
-      const chitinMid = isLight ? "#2a3748" : "#111b17";
-      const chitinLight = isLight ? "#4a5d75" : "#243d32";
-      const shadowColor = isLight ? "rgba(0, 0, 0, 0.14)" : "rgba(0, 0, 0, 0.65)";
-      const silkLineColor = isLight ? "rgba(10, 143, 92, 0.22)" : "rgba(57, 255, 140, 0.24)";
+      // High-contrast cyber dark palette
+      const accent = "#39ff8c";
+      const ocularRed = "#ff3333";
+      const chitinDark = "#070c0a";
+      const chitinMid = "#111b17";
+      const chitinLight = "#243d32";
+      const shadowColor = "rgba(0, 0, 0, 0.65)";
+      const silkLineColor = "rgba(57, 255, 140, 0.24)";
 
       spider.idleTimer += 0.016;
       spider.pedipalpTimer += 0.09;
@@ -481,7 +477,7 @@ export default function CyberSpiderBackground() {
       // Ambient Cyber Core Glow
       const corePulse = 0.14 + Math.sin(spider.idleTimer * 3) * 0.06;
       const coreAura = ctx.createRadialGradient(-18, 0, 2, -18, 0, 36);
-      coreAura.addColorStop(0, isLight ? `rgba(10, 143, 92, ${corePulse})` : `rgba(57, 255, 140, ${corePulse})`);
+      coreAura.addColorStop(0, `rgba(57, 255, 140, ${corePulse})`);
       coreAura.addColorStop(1, "transparent");
       ctx.fillStyle = coreAura;
       ctx.beginPath();
@@ -509,7 +505,7 @@ export default function CyberSpiderBackground() {
         const segH = abdomenRadiusY * Math.sin((s / 5) * Math.PI) * 0.95;
         ctx.beginPath();
         ctx.ellipse(segX, 0, 2.5, segH, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = isLight ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.06)";
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -517,7 +513,7 @@ export default function CyberSpiderBackground() {
       // Abdomen Glowing Neural Reactor Core
       ctx.beginPath();
       ctx.ellipse(abdomenX + 2, 0, 6.5, 4, 0, 0, Math.PI * 2);
-      ctx.fillStyle = isLight ? "rgba(10, 143, 92, 0.28)" : "rgba(57, 255, 140, 0.32)";
+      ctx.fillStyle = "rgba(57, 255, 140, 0.32)";
       ctx.fill();
       ctx.beginPath();
       ctx.arc(abdomenX + 2, 0, 2.5, 0, Math.PI * 2);
@@ -674,7 +670,7 @@ export default function CyberSpiderBackground() {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [theme]);
+  }, []);
 
   return (
     <canvas

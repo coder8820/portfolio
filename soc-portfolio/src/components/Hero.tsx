@@ -50,37 +50,17 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      {/* Dynamic Cyber Background Engine (Dark & Light Mode Optimized) */}
+      {/* Cyber Background Engine: Holographic Threat Telemetry Mesh */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        {/* Dark Mode: Holographic Threat Telemetry Mesh */}
         <div
-          className="hero-bg-dark absolute inset-0 bg-no-repeat bg-center bg-cover opacity-40 mix-blend-screen transition-opacity duration-300"
+          className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-40 mix-blend-screen"
           style={{
             backgroundImage: "url('/cyber-threat-mesh.jpg')",
             maskImage: "radial-gradient(ellipse 85% 75% at 50% 30%, black 30%, transparent 85%)",
             WebkitMaskImage: "radial-gradient(ellipse 85% 75% at 50% 30%, black 30%, transparent 85%)",
           }}
         />
-        <div className="hero-bg-dark absolute inset-0 grid-fade transition-opacity duration-300" />
-
-        {/* Light Mode: Real Cyber Threat Mesh Graphic (Properly Visible & High Contrast) */}
-        <div className="hero-bg-light absolute inset-0 transition-opacity duration-300">
-          {/* Subtle Top Emerald Ambient Glow */}
-          <div className="absolute top-0 inset-x-0 h-[520px] bg-[radial-gradient(ellipse_75%_55%_at_50%_0%,rgba(10,143,92,0.12),transparent_75%)]" />
-
-          {/* Actual Dedicated Light-Mode Threat Mesh Graphic */}
-          <div
-            className="absolute inset-0 bg-no-repeat bg-center bg-cover opacity-70 mix-blend-multiply transition-opacity duration-300"
-            style={{
-              backgroundImage: "url('/cyber-threat-mesh-light.jpg')",
-              maskImage: "radial-gradient(ellipse 90% 80% at 50% 35%, black 40%, transparent 92%)",
-              WebkitMaskImage: "radial-gradient(ellipse 90% 80% at 50% 35%, black 40%, transparent 92%)",
-            }}
-          />
-
-          {/* Clean Light-Mode Grid Overlay */}
-          <div className="absolute inset-0 grid-fade opacity-60" />
-        </div>
+        <div className="absolute inset-0 grid-fade" />
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-14 pb-16 sm:pt-20 sm:pb-24 relative">
         <div className="grid lg:grid-cols-5 gap-8 items-start">
