@@ -115,6 +115,10 @@
 html {
   scroll-behavior: smooth;
   min-height: 100%;
+  /* Ensure all CSS-variable-driven colors transition together */
+  transition: --bg 0.3s ease, --bg-panel 0.3s ease, --bg-panel-raised 0.3s ease,
+    --line 0.3s ease, --text 0.3s ease, --text-muted 0.3s ease,
+    --text-dim 0.3s ease, --accent 0.3s ease, --accent-dim 0.3s ease;
 }
 
 body {
@@ -125,7 +129,53 @@ body {
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   background-image: var(--body-gradient), var(--body-scanline);
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    background-image 0.3s ease;
+}
+
+/* ============================
+   HERO BACKGROUND THEME TOGGLE
+   (uses .light class, not dark: variant)
+   ============================ */
+.hero-bg-dark {
+  opacity: 0.4;
+}
+
+.hero-bg-light {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.light .hero-bg-dark {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.light .hero-bg-light {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ============================
+   GLOBAL THEME TRANSITION
+   Ensures all variable-driven properties
+   transition simultaneously on theme toggle
+   ============================ */
+*:not([class*="animate-"]):not(.ticker-track):not(.scanline):not(.profile-ring-glow) {
+  transition: color 0.3s ease, background-color 0.3s ease, background 0.3s ease,
+    border-color 0.3s ease, box-shadow 0.3s ease, outline-color 0.3s ease,
+    fill 0.3s ease, stroke 0.3s ease, opacity 0.3s ease;
+}
+
+/* Keep existing transition behavior for interactive components */
+.panel {
+  transition: background 0.3s ease, border-color 0.3s ease,
+    box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 /* ============================
@@ -187,7 +237,7 @@ body {
   position: relative;
   box-shadow: var(--panel-shadow);
   transition: background 0.3s ease, border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    box-shadow 0.3s ease, color 0.3s ease;
 }
 
 .panel-header {
@@ -434,7 +484,9 @@ body {
    HOVER LIFT FOR CARDS
    ============================ */
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
+    background 0.3s ease;
 }
 
 .hover-lift:hover {
