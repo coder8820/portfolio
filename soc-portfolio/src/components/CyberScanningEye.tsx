@@ -136,7 +136,7 @@ export default function CyberScanningEye() {
             />
           </span>
           <span className="font-mono text-[10px] font-bold tracking-wider text-text uppercase">
-            {locked ? "TARGET LOCKED" : "OCULAR MONITOR"}
+            {locked ? "TARGET LOCKED" : "SYSTEM MONITOR"}
           </span>
         </div>
 
