@@ -2,6 +2,7 @@ import StatusBar from "@/components/StatusBar";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
+import Services from "@/components/Services";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
 import Certifications from "@/components/Certifications";
@@ -18,6 +19,7 @@ export default function Home() {
       <main className="flex-1">
         <Hero />
         <About />
+        <Services />
         <Skills />
         <Projects />
         <Certifications />

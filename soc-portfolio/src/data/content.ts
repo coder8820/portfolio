@@ -5,13 +5,13 @@
 
 export const profile = {
   name: "Kumail Abbas",
-  handle: "@yourhandle",
-  role: "SOC Analyst / Blue Team",
+  handle: "@kumail8820",
+  role: "SOC Analyst / Blue Team Engineer",
   tagline:
-    "Monitoring, detecting, and responding to threats — one log line at a time.",
-  location: "Pakistan",
+    "Monitoring, detecting, and responding to enterprise threats — one log line at a time.",
+  location: "Pakistan (Remote / Global)",
   education: {
-    degree: "BSCS",
+    degree: "BSCS (Computer Science)",
     institution: "University of Baltistan, Skardu",
     url: "https://uobs.edu.pk/",
   },
@@ -21,10 +21,12 @@ export const profile = {
   tryhackme: "https://tryhackme.com/p/kumailAbbass?vccr=1",
   resumeUrl: "/resume.pdf", // drop your CV at public/resume.pdf
   summary:
-    "Blue team–focused security analyst with hands-on experience building and tuning SIEM detections, hunting through logs, and analyzing network traffic. Comfortable across Wazuh, QRadar, Splunk, and packet-level tools — I like turning noisy data into clear, actionable alerts.",
+    "Dedicated SOC Analyst & Detection Engineer specializing in real-time threat monitoring, SIEM correlation (Wazuh, QRadar, Splunk), and deep packet forensics. Proven record of analyzing 14,000+ attacker probes, engineering high-fidelity Sigma detection rules, and reducing incident triage SLA from 5m to <30s.",
   specialization: "SOC Operations & Threat Hunting",
   focus: "Detection Engineering & Packet Forensics",
   methodology: "MITRE ATT&CK & NIST Incident Response",
+  availability: "Available for SOC & Security Engagements",
+  clearance: "Blue Team / SOC Triage Verified",
 };
 
 export const aboutStats = [
@@ -100,6 +102,116 @@ export const defensePhilosophy = [
     title: "Adversary Lifecycle Mapping",
     description:
       "Detections are systematically categorized by MITRE ATT&CK tactics to expose blind spots and preempt lateral movement before impact.",
+  },
+];
+
+export interface Service {
+  id: string;
+  category: string;
+  title: string;
+  shortDesc: string;
+  deliverables: string[];
+  technologies: string[];
+  sla: string;
+  iconName: "Radar" | "Terminal" | "ShieldCheck" | "Activity" | "Lock" | "Cpu";
+}
+
+export const services: Service[] = [
+  {
+    id: "soc-monitoring",
+    category: "DEFENSE OPERATIONS",
+    title: "24/7 SOC Monitoring & Alert Triage",
+    shortDesc:
+      "Continuous surveillance of telemetry feeds, high-fidelity alert validation across SIEM consoles, and rapid incident escalation under strict SLAs.",
+    deliverables: [
+      "Continuous SIEM event analysis (Wazuh, QRadar, Splunk)",
+      "High-velocity alert triage & false-positive suppression",
+      "Enriched escalation dossiers with verified IOC indicators",
+      "SLA-driven response (<30s initial containment assessment)",
+    ],
+    technologies: ["Wazuh 4.x", "IBM QRadar", "Splunk", "VirusTotal", "AlienVault OTX"],
+    sla: "SLA: <30s Initial Triage",
+    iconName: "Radar",
+  },
+  {
+    id: "siem-engineering",
+    category: "DETECTION ENGINEERING",
+    title: "SIEM Deployment & Custom Detection Rules",
+    shortDesc:
+      "Engineering ingestion pipelines, authoring custom regex decoders, and translating Sigma rules into actionable SIEM detections mapped to MITRE ATT&CK.",
+    deliverables: [
+      "Custom XML decoders & correlation rule authoring",
+      "Cross-platform Sigma rule conversion & deployment",
+      "Log pipeline optimization for high-throughput nodes",
+      "ATT&CK matrix gap analysis & blind-spot remediation",
+    ],
+    technologies: ["Sigma Rules", "Wazuh Decoders", "QRadar AQL", "Splunk SPL", "Elasticsearch"],
+    sla: "100+ Custom Rules Authored",
+    iconName: "Terminal",
+  },
+  {
+    id: "endpoint-forensics",
+    category: "HOST FORENSICS",
+    title: "Endpoint Threat Hunting & Host Forensics",
+    shortDesc:
+      "Uncovering evasive adversary persistence, memory process injection, and privilege escalation through deep Windows Sysmon and Linux audit telemetry.",
+    deliverables: [
+      "Modular Sysmon configuration & telemetry harvesting",
+      "Process tree inspection & DLL injection detection",
+      "Persistence hunting across Registry, RunKeys & Tasks",
+      "Root-cause timeline reconstruction & artifact extraction",
+    ],
+    technologies: ["Sysmon", "Windows Events", "Linux Auditd", "Volatility", "FTK Imager"],
+    sla: "Kernel-Level Visibility",
+    iconName: "ShieldCheck",
+  },
+  {
+    id: "network-forensics",
+    category: "NETWORK DEFENSE",
+    title: "Deep Packet Forensics & Traffic Hunting",
+    shortDesc:
+      "Dissecting raw PCAP captures to identify C2 beaconing frequencies, covert DNS exfiltration, rogue protocol handshakes, and lateral movement.",
+    deliverables: [
+      "Raw PCAP packet header dissection & protocol analysis",
+      "C2 beaconing frequency & statistical jitter calculation",
+      "DNS tunneling & anomalous TLS certificate detection",
+      "Suricata/Zeek signature development for inline defense",
+    ],
+    technologies: ["Wireshark", "Zeek (Bro)", "Suricata", "tcpdump", "NetworkMiner"],
+    sla: "100% Wire-Level Verification",
+    iconName: "Activity",
+  },
+  {
+    id: "vulnerability-hardening",
+    category: "POSTURE HARDENING",
+    title: "Vulnerability Assessment & CIS Hardening",
+    shortDesc:
+      "Auditing host and network attack surfaces against CIS Benchmarks and Active Directory defense principles to eliminate vectors before exploitation.",
+    deliverables: [
+      "CIS Benchmark compliance audits (Windows & Linux)",
+      "Active Directory misconfiguration & delegation review",
+      "Network perimeter port audits & firewall policy reviews",
+      "Actionable remediation roadmaps prioritized by CVSS risk",
+    ],
+    technologies: ["Nmap", "Nessus", "CIS Benchmarks", "BloodHound", "Active Directory"],
+    sla: "Defensive Posture Hardening",
+    iconName: "Lock",
+  },
+  {
+    id: "ir-automation",
+    category: "SECURITY AUTOMATION",
+    title: "Incident Response & Playbook Automation",
+    shortDesc:
+      "Developing automated triage pipelines with Python, parsing malicious email headers, and implementing NIST-compliant containment playbooks.",
+    deliverables: [
+      "NIST SP 800-61 aligned containment & eradication workflows",
+      "Python scripts for automated IOC enrichment & lookup",
+      "Phishing header analysis & suspicious attachment triage",
+      "Comprehensive executive breach reports & lessons learned",
+    ],
+    technologies: ["Python 3", "Bash Scripting", "REST APIs", "SOAR Pipelines", "NIST Framework"],
+    sla: "90% Triage Acceleration",
+    iconName: "Cpu",
   },
 ];
 
