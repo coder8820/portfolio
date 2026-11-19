@@ -133,7 +133,7 @@ export default function HackerAvatar({
             rotateY,
             transformStyle: "preserve-3d",
           }}
-          className={`relative z-10 w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-2 transition-all duration-300 group bg-black/90 ${
+          className={`relative z-10 w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-2 transition-[border-color,box-shadow] duration-300 group bg-black/90 ${
             isOverridden
               ? "border-accent shadow-[0_0_32px_rgba(57,255,140,0.45)] ring-2 ring-accent/40"
               : "border-accent/40 hover:border-accent shadow-[0_0_20px_rgba(57,255,140,0.2)]"

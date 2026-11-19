@@ -3,21 +3,27 @@
 import { useEffect, useRef } from "react";
 import { useTheme } from "./ThemeProvider";
 
-interface Leg {
-  side: -1 | 1; // -1 for left, 1 for right
-  index: number; // 0..3 front to back
-  baseAngle: number;
-  reach: number;
+interface SpiderLeg {
+  side: -1 | 1; // -1 = Left (-Y in local space), 1 = Right (+Y in local space)
+  pairIndex: number; // 0 = Front, 1 = Mid-Front, 2 = Mid-Back, 3 = Rear
+  hipLocalX: number; // Offset along body length (+X is forward)
+  hipLocalY: number; // Offset along body width
+  spreadAngle: number; // Radians off forward axis (+X)
+  reach: number; // Natural rest distance of foot from hip
+  femurLen: number;
+  tibiaLen: number;
   footX: number;
   footY: number;
   targetFootX: number;
   targetFootY: number;
+  stepStartX: number;
+  stepStartY: number;
   isStepping: boolean;
   stepProgress: number;
   stepHeight: number;
 }
 
-interface WebPoint {
+interface SilkPoint {
   x: number;
   y: number;
   alpha: number;
@@ -34,284 +40,314 @@ export default function CyberSpiderBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
+    let animId: number;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    // Mouse and scroll tracking
-    const mouse = {
-      x: width * 0.75,
-      y: height * 0.25,
-      targetX: width * 0.75,
-      targetY: height * 0.25,
-      hasMoved: false,
-      lastMoveTime: Date.now(),
+    // Target position (driven by mouse & scroll)
+    const target = {
+      x: width * 0.72,
+      y: 160,
+      userActive: false,
+      lastInteractionTime: Date.now(),
     };
 
     // Spider state
     const spider = {
-      x: width * 0.8,
-      y: 120,
+      x: width * 0.72,
+      y: 140,
       vx: 0,
       vy: 0,
-      angle: Math.PI / 2, // Facing downwards initially
+      angle: Math.PI / 2, // Facing downwards (+Y in screen space) initially
       angularVelocity: 0,
-      targetAngle: Math.PI / 2,
-      bodyRadius: 14,
-      scale: 1,
       speed: 0,
-      maxSpeed: 4.5,
+      maxSpeed: 4.8,
+      bodyBob: 0,
+      walkCycle: 0,
       idleTimer: 0,
-      pulse: 0,
+      pedipalpTimer: 0,
+      alertLevel: 0,
     };
 
-    // Configure 8 cyber legs
-    const legs: Leg[] = [];
-    const baseAnglesLeft = [-0.65, -0.25, 0.25, 0.75];
-    const baseAnglesRight = [Math.PI + 0.65, Math.PI + 0.25, Math.PI - 0.25, Math.PI - 0.75];
-    const reaches = [48, 54, 52, 46];
+    // Authentic 8-Leg Morphological Configuration:
+    // Pair 0 (Front): Reaches forward-outward (~32° off head axis)
+    // Pair 1 (Mid-Front): Reaches wide lateral-forward (~65° off head axis)
+    // Pair 2 (Mid-Back): Reaches wide lateral-rear (~115° off head axis)
+    // Pair 3 (Rear): Reaches far backward (~155° off head axis, trailing behind abdomen)
+    const legConfigs = [
+      { hipX: 8, hipY: 8.5, spreadAngle: 0.55, reach: 64, femur: 32, tibia: 36 },
+      { hipX: 3, hipY: 9.5, spreadAngle: 1.15, reach: 72, femur: 35, tibia: 42 },
+      { hipX: -2, hipY: 9.0, spreadAngle: 2.05, reach: 62, femur: 30, tibia: 38 },
+      { hipX: -7, hipY: 8.0, spreadAngle: 2.75, reach: 76, femur: 36, tibia: 44 },
+    ];
+
+    const legs: SpiderLeg[] = [];
 
     for (let i = 0; i < 4; i++) {
-      // Left legs
+      const cfg = legConfigs[i];
+
+      // Left Leg (side = -1, spread angle goes negative/left)
+      const leftInitAngle = spider.angle - cfg.spreadAngle;
+      const leftHipX = spider.x + Math.cos(spider.angle) * cfg.hipX - Math.sin(spider.angle) * (-cfg.hipY);
+      const leftHipY = spider.y + Math.sin(spider.angle) * cfg.hipX + Math.cos(spider.angle) * (-cfg.hipY);
+      const leftFootX = leftHipX + Math.cos(leftInitAngle) * cfg.reach;
+      const leftFootY = leftHipY + Math.sin(leftInitAngle) * cfg.reach;
+
       legs.push({
         side: -1,
-        index: i,
-        baseAngle: baseAnglesLeft[i],
-        reach: reaches[i],
-        footX: spider.x + Math.cos(baseAnglesLeft[i]) * reaches[i],
-        footY: spider.y + Math.sin(baseAnglesLeft[i]) * reaches[i],
-        targetFootX: spider.x + Math.cos(baseAnglesLeft[i]) * reaches[i],
-        targetFootY: spider.y + Math.sin(baseAnglesLeft[i]) * reaches[i],
+        pairIndex: i,
+        hipLocalX: cfg.hipX,
+        hipLocalY: -cfg.hipY,
+        spreadAngle: cfg.spreadAngle,
+        reach: cfg.reach,
+        femurLen: cfg.femur,
+        tibiaLen: cfg.tibia,
+        footX: leftFootX,
+        footY: leftFootY,
+        targetFootX: leftFootX,
+        targetFootY: leftFootY,
+        stepStartX: leftFootX,
+        stepStartY: leftFootY,
         isStepping: false,
         stepProgress: 0,
         stepHeight: 0,
       });
 
-      // Right legs
+      // Right Leg (side = 1, spread angle goes positive/right)
+      const rightInitAngle = spider.angle + cfg.spreadAngle;
+      const rightHipX = spider.x + Math.cos(spider.angle) * cfg.hipX - Math.sin(spider.angle) * cfg.hipY;
+      const rightHipY = spider.y + Math.sin(spider.angle) * cfg.hipX + Math.cos(spider.angle) * cfg.hipY;
+      const rightFootX = rightHipX + Math.cos(rightInitAngle) * cfg.reach;
+      const rightFootY = rightHipY + Math.sin(rightInitAngle) * cfg.reach;
+
       legs.push({
         side: 1,
-        index: i,
-        baseAngle: baseAnglesRight[i],
-        reach: reaches[i],
-        footX: spider.x + Math.cos(baseAnglesRight[i]) * reaches[i],
-        footY: spider.y + Math.sin(baseAnglesRight[i]) * reaches[i],
-        targetFootX: spider.x + Math.cos(baseAnglesRight[i]) * reaches[i],
-        targetFootY: spider.y + Math.sin(baseAnglesRight[i]) * reaches[i],
+        pairIndex: i,
+        hipLocalX: cfg.hipX,
+        hipLocalY: cfg.hipY,
+        spreadAngle: cfg.spreadAngle,
+        reach: cfg.reach,
+        femurLen: cfg.femur,
+        tibiaLen: cfg.tibia,
+        footX: rightFootX,
+        footY: rightFootY,
+        targetFootX: rightFootX,
+        targetFootY: rightFootY,
+        stepStartX: rightFootX,
+        stepStartY: rightFootY,
         isStepping: false,
         stepProgress: 0,
         stepHeight: 0,
       });
     }
 
-    // Web silk trail
-    const webTrail: WebPoint[] = [];
-    const maxTrailPoints = 35;
+    // Trailing cyber silk trail
+    const silkTrail: SilkPoint[] = [];
+    const maxSilk = 45;
 
-    // Window resize handler
-    const handleResize = () => {
+    const onResize = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", onResize);
 
-    // Mouse movement handler across viewport
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.targetX = e.clientX;
-      mouse.targetY = e.clientY;
-      mouse.hasMoved = true;
-      mouse.lastMoveTime = Date.now();
+    const onMouseMove = (e: MouseEvent) => {
+      target.x = e.clientX;
+      target.y = e.clientY;
+      target.userActive = true;
+      target.lastInteractionTime = Date.now();
     };
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
 
-    // Scroll handler: moves spider smoothly towards lower sections as user scrolls down
-    const handleScroll = () => {
-      const scrollMax = Math.max(
-        1,
-        document.documentElement.scrollHeight - window.innerHeight
-      );
-      const scrollRatio = Math.min(1, Math.max(0, window.scrollY / scrollMax));
+    const onScroll = () => {
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const scrollRatio = Math.min(1, Math.max(0, window.scrollY / maxScroll));
 
-      // Target progresses down across viewport proportional to scroll depth
-      if (!mouse.hasMoved || Date.now() - mouse.lastMoveTime > 2500) {
-        mouse.targetY = 100 + scrollRatio * (height - 200);
-        mouse.targetX =
-          width * 0.5 + Math.sin(scrollRatio * Math.PI * 4) * (width * 0.35);
+      // As user scrolls, spider journeys down smoothly from Home to Footer
+      if (!target.userActive || Date.now() - target.lastInteractionTime > 2200) {
+        target.y = 120 + scrollRatio * (height - 240);
+        target.x = width * 0.5 + Math.sin(scrollRatio * Math.PI * 3.5) * (width * 0.38);
       }
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
 
-    // Leg step scheduling (alternating gait groups like natural spider locomotion)
-    let gaitTimer = 0;
+    let gaitClock = 0;
 
-    // Main animation loop
     const render = () => {
-      // Clear canvas with transparent clearRect
       ctx.clearRect(0, 0, width, height);
 
       const isLight = document.documentElement.classList.contains("light");
-      const accentColor = isLight ? "rgba(10, 143, 92, " : "rgba(57, 255, 140, ";
-      const coreColor = isLight ? "#0a8f5c" : "#39ff8c";
-      const eyeRed = isLight ? "#d93025" : "#ff5c5c";
-      const bodyColor = isLight ? "#1a2332" : "#0d1612";
-      const bodyHighlight = isLight ? "#2a374a" : "#172720";
-      const threadColor = isLight
-        ? "rgba(10, 143, 92, 0.22)"
-        : "rgba(57, 255, 140, 0.25)";
 
-      // Smooth mouse interpolation
-      mouse.x += (mouse.targetX - mouse.x) * 0.05;
-      mouse.y += (mouse.targetY - mouse.y) * 0.05;
+      // High-contrast cyber palette
+      const accent = isLight ? "#0a8f5c" : "#39ff8c";
+      const ocularRed = isLight ? "#d93025" : "#ff3333";
+      const chitinDark = isLight ? "#1a2432" : "#070c0a";
+      const chitinMid = isLight ? "#2a3748" : "#111b17";
+      const chitinLight = isLight ? "#4a5d75" : "#243d32";
+      const shadowColor = isLight ? "rgba(0, 0, 0, 0.14)" : "rgba(0, 0, 0, 0.65)";
+      const silkLineColor = isLight ? "rgba(10, 143, 92, 0.22)" : "rgba(57, 255, 140, 0.24)";
 
-      // Autonomous idle wander if user hasn't moved mouse in a bit
-      spider.idleTimer += 0.015;
-      spider.pulse += 0.04;
+      spider.idleTimer += 0.016;
+      spider.pedipalpTimer += 0.09;
 
-      let targetX = mouse.x;
-      let targetY = mouse.y;
+      let tx = target.x;
+      let ty = target.y;
 
-      if (!mouse.hasMoved || Date.now() - mouse.lastMoveTime > 3000) {
-        // Organic gentle floating S-curve swimming motion down towards page content
-        const scrollMax = Math.max(
-          1,
-          document.documentElement.scrollHeight - window.innerHeight
-        );
-        const scrollRatio = Math.min(1, Math.max(0, window.scrollY / scrollMax));
-        const baseTargetY = 120 + scrollRatio * (height - 220);
+      // Autonomous wandering when mouse is idle
+      if (!target.userActive || Date.now() - target.lastInteractionTime > 3200) {
+        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const scrollRatio = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+        const baseY = 130 + scrollRatio * (height - 260);
 
-        targetX =
+        tx =
           width * 0.5 +
-          Math.sin(spider.idleTimer * 0.8) * (width * 0.38) +
-          Math.cos(spider.idleTimer * 0.4) * 80;
-        targetY =
-          baseTargetY +
-          Math.sin(spider.idleTimer * 1.2) * 90 +
-          Math.cos(spider.idleTimer * 0.6) * 40;
+          Math.sin(spider.idleTimer * 0.75) * (width * 0.36) +
+          Math.cos(spider.idleTimer * 0.35) * 70;
+        ty =
+          baseY +
+          Math.sin(spider.idleTimer * 1.1) * 85 +
+          Math.cos(spider.idleTimer * 0.5) * 45;
       }
 
-      // Distance and angle to target
-      const dx = targetX - spider.x;
-      const dy = targetY - spider.y;
+      // Compute vector to target
+      const dx = tx - spider.x;
+      const dy = ty - spider.y;
       const dist = Math.hypot(dx, dy);
 
-      // Angle wrapping and smooth orientation turning (slerp)
+      // Alert stance when cursor is right near the spider
+      const cursorDist = Math.hypot(target.x - spider.x, target.y - spider.y);
+      if (cursorDist < 85 && target.userActive) {
+        spider.alertLevel += (1 - spider.alertLevel) * 0.12;
+      } else {
+        spider.alertLevel += (0 - spider.alertLevel) * 0.06;
+      }
+
+      // Smooth realistic orientation (head facing target)
       const targetAngle = Math.atan2(dy, dx);
       let angleDiff = targetAngle - spider.angle;
       while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
       while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
 
-      // Turning physics
-      spider.angularVelocity = angleDiff * 0.08;
+      spider.angularVelocity = angleDiff * 0.075;
       spider.angle += spider.angularVelocity;
 
-      // Forward locomotion physics (accelerates smoothly, slows down near target)
-      const desiredSpeed = Math.min(spider.maxSpeed, Math.max(0.4, dist * 0.025));
-      spider.speed += (desiredSpeed - spider.speed) * 0.06;
+      // Crawling velocity (accelerates smoothly, slows when near target)
+      const desiredSpeed = dist > 22 ? Math.min(spider.maxSpeed, Math.max(0.6, dist * 0.04)) : 0;
+      spider.speed += (desiredSpeed - spider.speed) * 0.09;
 
       if (dist > 18) {
         spider.vx = Math.cos(spider.angle) * spider.speed;
         spider.vy = Math.sin(spider.angle) * spider.speed;
       } else {
-        spider.vx *= 0.88;
-        spider.vy *= 0.88;
+        spider.vx *= 0.85;
+        spider.vy *= 0.85;
       }
 
       spider.x += spider.vx;
       spider.y += spider.vy;
 
-      // Keep spider on-screen boundaries
-      spider.x = Math.max(40, Math.min(width - 40, spider.x));
-      spider.y = Math.max(40, Math.min(height - 40, spider.y));
+      // Keep within screen bounds
+      spider.x = Math.max(50, Math.min(width - 50, spider.x));
+      spider.y = Math.max(50, Math.min(height - 50, spider.y));
 
-      // Append web trail point
-      if (Math.hypot(spider.vx, spider.vy) > 0.4 || webTrail.length === 0) {
+      // Body bobbing cadence with step cycle
+      if (spider.speed > 0.3) {
+        spider.walkCycle += spider.speed * 0.14;
+        spider.bodyBob = Math.sin(spider.walkCycle * 2) * 1.6;
+      } else {
+        spider.bodyBob = Math.sin(spider.idleTimer * 2) * 0.5;
+      }
+
+      // Record trailing silk from rear spinnerets (along -X in local space, opposite to head)
+      const spinneretX = spider.x - Math.cos(spider.angle) * 32;
+      const spinneretY = spider.y - Math.sin(spider.angle) * 32;
+
+      if (Math.hypot(spider.vx, spider.vy) > 0.4 || silkTrail.length === 0) {
         if (
-          webTrail.length === 0 ||
-          Math.hypot(
-            spider.x - webTrail[webTrail.length - 1].x,
-            spider.y - webTrail[webTrail.length - 1].y
-          ) > 16
+          silkTrail.length === 0 ||
+          Math.hypot(spinneretX - silkTrail[silkTrail.length - 1].x, spinneretY - silkTrail[silkTrail.length - 1].y) > 16
         ) {
-          webTrail.push({ x: spider.x, y: spider.y, alpha: 1 });
-          if (webTrail.length > maxTrailPoints) {
-            webTrail.shift();
+          silkTrail.push({ x: spinneretX, y: spinneretY, alpha: 1 });
+          if (silkTrail.length > maxSilk) {
+            silkTrail.shift();
           }
         }
       }
 
-      // Fade out trailing web points
-      for (let i = 0; i < webTrail.length; i++) {
-        webTrail[i].alpha -= 0.005;
+      // Fade out silk
+      for (let i = 0; i < silkTrail.length; i++) {
+        silkTrail[i].alpha -= 0.0035;
       }
-      while (webTrail.length > 0 && webTrail[0].alpha <= 0) {
-        webTrail.shift();
+      while (silkTrail.length > 0 && silkTrail[0].alpha <= 0) {
+        silkTrail.shift();
       }
 
-      // ----------------------------------------------------
-      // DRAW 1: Glowing Digital Web Silk Trail
-      // ----------------------------------------------------
-      if (webTrail.length > 1) {
+      // ====================================================
+      // 1. Draw Glowing Cyber Silk Line Behind Spider
+      // ====================================================
+      if (silkTrail.length > 1) {
         ctx.beginPath();
-        ctx.moveTo(webTrail[0].x, webTrail[0].y);
-        for (let i = 1; i < webTrail.length; i++) {
-          ctx.lineTo(webTrail[i].x, webTrail[i].y);
+        ctx.moveTo(silkTrail[0].x, silkTrail[0].y);
+        for (let i = 1; i < silkTrail.length; i++) {
+          ctx.lineTo(silkTrail[i].x, silkTrail[i].y);
         }
-        ctx.strokeStyle = threadColor;
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = silkLineColor;
+        ctx.lineWidth = 1.1;
+        ctx.setLineDash([2, 5]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Small glowing telemetry data nodes along the silk line
-        for (let i = 0; i < webTrail.length; i += 3) {
-          const pt = webTrail[i];
+        // Small glowing data nodes on silk
+        for (let i = 0; i < silkTrail.length; i += 3) {
+          const pt = silkTrail[i];
           ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 1.8, 0, Math.PI * 2);
-          ctx.fillStyle = `${accentColor}${pt.alpha * 0.6})`;
+          ctx.arc(pt.x, pt.y, 1.4, 0, Math.PI * 2);
+          ctx.fillStyle = accent;
+          ctx.globalAlpha = pt.alpha * 0.6;
           ctx.fill();
+          ctx.globalAlpha = 1;
         }
       }
 
-      // ----------------------------------------------------
-      // UPDATE 2: 8-Legged Inverse Kinematics Gait
-      // ----------------------------------------------------
-      gaitTimer += spider.speed * 0.05 + 0.02;
+      // ====================================================
+      // 2. Biological Tetrapod Gait Step Scheduling
+      // Set A: L0, R1, L2, R3
+      // Set B: R0, L1, R2, L3
+      // ====================================================
+      gaitClock += spider.speed * 0.07 + 0.018;
 
       legs.forEach((leg) => {
-        // Ideal foot position relative to body angle & speed
-        const bodyAngle = spider.angle;
-        const offsetAngle = bodyAngle + leg.baseAngle;
-        const forwardBias = (3 - leg.index) * 6; // Front legs reach further forward
-        const idealFootX =
-          spider.x +
-          Math.cos(offsetAngle) * leg.reach +
-          Math.cos(bodyAngle) * forwardBias;
-        const idealFootY =
-          spider.y +
-          Math.sin(offsetAngle) * leg.reach +
-          Math.sin(bodyAngle) * forwardBias;
+        // Compute current hip position in world space
+        // Local hip is at (hipLocalX, hipLocalY)
+        const cosA = Math.cos(spider.angle);
+        const sinA = Math.sin(spider.angle);
+        const hipX = spider.x + cosA * leg.hipLocalX - sinA * leg.hipLocalY;
+        const hipY = spider.y + sinA * leg.hipLocalX + cosA * leg.hipLocalY;
 
-        const footDistToIdeal = Math.hypot(
-          leg.footX - idealFootX,
-          leg.footY - idealFootY
-        );
+        // Ideal foot landing zone
+        // Leg angle in world space: spider.angle + (leg.side === -1 ? -leg.spreadAngle : leg.spreadAngle)
+        const legWorldAngle = spider.angle + (leg.side === -1 ? -leg.spreadAngle : leg.spreadAngle);
+        const alertReachBonus = leg.pairIndex === 0 ? spider.alertLevel * 14 : 0;
+        const idealFootX = hipX + Math.cos(legWorldAngle) * (leg.reach + alertReachBonus) + spider.vx * 7;
+        const idealFootY = hipY + Math.sin(legWorldAngle) * (leg.reach + alertReachBonus) + spider.vy * 7;
 
-        // Group 1: Left 0, 2 & Right 1, 3
-        // Group 2: Left 1, 3 & Right 0, 2
-        const isGroupA = (leg.side === -1 && leg.index % 2 === 0) || (leg.side === 1 && leg.index % 2 === 1);
-        const groupAllowed = isGroupA
-          ? Math.sin(gaitTimer) > 0
-          : Math.sin(gaitTimer) <= 0;
+        const distToIdeal = Math.hypot(leg.footX - idealFootX, leg.footY - idealFootY);
 
-        // Trigger leg step if distance exceeds threshold and group is active
-        if (!leg.isStepping && footDistToIdeal > 22 && groupAllowed) {
+        // Alternating tetrapod group
+        const isGroupA = (leg.side === -1 && leg.pairIndex % 2 === 0) || (leg.side === 1 && leg.pairIndex % 2 === 1);
+        const canStep = isGroupA ? Math.sin(gaitClock) > 0 : Math.sin(gaitClock) <= 0;
+
+        const stepThreshold = leg.pairIndex === 0 ? 20 : 25;
+        if (!leg.isStepping && distToIdeal > stepThreshold && canStep) {
           leg.isStepping = true;
           leg.stepProgress = 0;
-          // Step towards slightly in front of ideal position to anticipate movement
-          leg.targetFootX = idealFootX + spider.vx * 7;
-          leg.targetFootY = idealFootY + spider.vy * 7;
+          leg.stepStartX = leg.footX;
+          leg.stepStartY = leg.footY;
+          leg.targetFootX = idealFootX + spider.vx * 6;
+          leg.targetFootY = idealFootY + spider.vy * 6;
         }
 
-        // Animate stepping arc
+        // Animate parabolic stepping arc
         if (leg.isStepping) {
           leg.stepProgress += 0.16;
           if (leg.stepProgress >= 1) {
@@ -320,186 +356,323 @@ export default function CyberSpiderBackground() {
             leg.footY = leg.targetFootY;
             leg.stepHeight = 0;
           } else {
-            // Interpolate position + parabola for leg lift height
-            leg.footX += (leg.targetFootX - leg.footX) * 0.28;
-            leg.footY += (leg.targetFootY - leg.footY) * 0.28;
-            leg.stepHeight = Math.sin(leg.stepProgress * Math.PI) * 12;
+            const t = leg.stepProgress;
+            const easeT = t * t * (3 - 2 * t);
+            leg.footX = leg.stepStartX + (leg.targetFootX - leg.stepStartX) * easeT;
+            leg.footY = leg.stepStartY + (leg.targetFootY - leg.stepStartY) * easeT;
+            leg.stepHeight = Math.sin(t * Math.PI) * 15;
           }
         }
       });
 
-      // ----------------------------------------------------
-      // DRAW 3: Render 8 Multi-Jointed Cyber Robotic Legs
-      // ----------------------------------------------------
+      // ====================================================
+      // 3. Body & Foot Shadows on Floor
+      // ====================================================
+      // Ambient shadow under abdomen and head
+      ctx.beginPath();
+      ctx.ellipse(spider.x + 2, spider.y + 5, 24, 15, spider.angle, 0, Math.PI * 2);
+      ctx.fillStyle = shadowColor;
+      ctx.filter = "blur(5px)";
+      ctx.fill();
+      ctx.filter = "none";
+
+      // Shadow under each foot contact
       legs.forEach((leg) => {
-        // Attachment point on spider thorax
-        const baseAngle = spider.angle + (leg.side === -1 ? -Math.PI / 2 : Math.PI / 2);
-        const hipSpacing = (leg.index - 1.5) * 6.5;
-        const hipX =
-          spider.x +
-          Math.cos(spider.angle) * hipSpacing +
-          Math.cos(baseAngle) * (spider.bodyRadius * 0.85);
-        const hipY =
-          spider.y +
-          Math.sin(spider.angle) * hipSpacing +
-          Math.sin(baseAngle) * (spider.bodyRadius * 0.85);
+        const shadowOffset = 2 + leg.stepHeight * 0.35;
+        ctx.beginPath();
+        ctx.ellipse(leg.footX + shadowOffset * 0.4, leg.footY + shadowOffset, 3, 2, 0, 0, Math.PI * 2);
+        ctx.fillStyle = shadowColor;
+        ctx.fill();
+      });
+
+      // ====================================================
+      // 4. Draw 8 High-Arched Articulated Spider Legs
+      // Real joints: Coxa -> Femur (arches up) -> Patella/Knee (apex) -> Tibia -> Tarsus (foot)
+      // ====================================================
+      legs.forEach((leg) => {
+        const cosA = Math.cos(spider.angle);
+        const sinA = Math.sin(spider.angle);
+        const hipX = spider.x + cosA * leg.hipLocalX - sinA * leg.hipLocalY;
+        const hipY = spider.y + sinA * leg.hipLocalX + cosA * leg.hipLocalY;
 
         const footX = leg.footX;
-        const footY = leg.footY - leg.stepHeight; // Lift height during step
+        const footY = leg.footY - leg.stepHeight;
 
-        // Inverse Kinematics Elbow/Knee calculation
+        // High arched knee apex in 3D:
+        // Knee bends OUTWARD away from the body
+        const legDx = footX - hipX;
+        const legDy = footY - hipY;
+        const legDist = Math.hypot(legDx, legDy);
+
         const midX = (hipX + footX) / 2;
         const midY = (hipY + footY) / 2;
-        const kneeOutDistance = (leg.side === -1 ? -1 : 1) * 16;
-        const perpAngle = Math.atan2(footY - hipY, footX - hipX) + Math.PI / 2;
+        const perpAngle = Math.atan2(legDy, legDx) + (leg.side === -1 ? -Math.PI / 2 : Math.PI / 2);
 
-        const kneeX = midX + Math.cos(perpAngle) * kneeOutDistance;
-        const kneeY = midY + Math.sin(perpAngle) * kneeOutDistance - leg.stepHeight * 0.6;
+        // Knee projects outward and reaches high in 3D
+        const kneeOutArch = Math.max(12, 20 - legDist * 0.1);
+        const kneeHeight = 11 + leg.stepHeight * 0.65;
+        const kneeX = midX + Math.cos(perpAngle) * kneeOutArch;
+        const kneeY = midY + Math.sin(perpAngle) * kneeOutArch - kneeHeight;
 
-        // Shadow under foot when lifted
-        if (leg.stepHeight > 0.5) {
-          ctx.beginPath();
-          ctx.ellipse(leg.footX, leg.footY, 3, 1.5, 0, 0, Math.PI * 2);
-          ctx.fillStyle = isLight ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.45)";
-          ctx.fill();
-        }
-
-        // Draw upper leg (Coxa to Knee)
+        // Segment 1: Coxa-Femur (Hip to High Knee Apex)
         ctx.beginPath();
         ctx.moveTo(hipX, hipY);
         ctx.lineTo(kneeX, kneeY);
-        ctx.strokeStyle = isLight ? "#2a374a" : "#1e2e27";
-        ctx.lineWidth = 2.4;
+        ctx.strokeStyle = chitinDark;
+        ctx.lineWidth = 3.4;
         ctx.lineCap = "round";
         ctx.stroke();
 
-        // Glowing cyber joint accent on upper leg
+        // Upper leg armor highlight
         ctx.beginPath();
         ctx.moveTo(hipX, hipY);
         ctx.lineTo(kneeX, kneeY);
-        ctx.strokeStyle = `${accentColor}0.35)`;
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = chitinLight;
+        ctx.lineWidth = 1.6;
         ctx.stroke();
 
-        // Draw lower leg (Knee to Foot)
+        // Segment 2: Tibia (High Knee to Lower Leg Joint)
+        const lowerJointX = kneeX * 0.35 + footX * 0.65;
+        const lowerJointY = kneeY * 0.35 + footY * 0.65;
+
         ctx.beginPath();
         ctx.moveTo(kneeX, kneeY);
-        ctx.lineTo(footX, footY);
-        ctx.strokeStyle = isLight ? "#3d4e63" : "#2a3e35";
-        ctx.lineWidth = 1.8;
+        ctx.lineTo(lowerJointX, lowerJointY);
+        ctx.strokeStyle = chitinMid;
+        ctx.lineWidth = 2.4;
         ctx.stroke();
 
-        // Knee joint servo node
+        // Segment 3: Tarsus (Claw Tip to Floor)
         ctx.beginPath();
-        ctx.arc(kneeX, kneeY, 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = coreColor;
+        ctx.moveTo(lowerJointX, lowerJointY);
+        ctx.lineTo(footX, footY);
+        ctx.strokeStyle = chitinDark;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Knee Servo Joint (Glowing node at the high apex)
+        ctx.beginPath();
+        ctx.arc(kneeX, kneeY, 2.4, 0, Math.PI * 2);
+        ctx.fillStyle = chitinLight;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(kneeX, kneeY, 1.3, 0, Math.PI * 2);
+        ctx.fillStyle = accent;
         ctx.fill();
 
-        // Foot contact tip
+        // Foot Claw Tip
         ctx.beginPath();
-        ctx.arc(footX, footY, leg.isStepping ? 2.5 : 1.6, 0, Math.PI * 2);
-        ctx.fillStyle = leg.isStepping ? coreColor : isLight ? "#5a6a7a" : "#6f8479";
+        ctx.arc(footX, footY, leg.isStepping ? 2.2 : 1.3, 0, Math.PI * 2);
+        ctx.fillStyle = leg.isStepping ? accent : chitinLight;
         ctx.fill();
       });
 
-      // ----------------------------------------------------
-      // DRAW 4: Spider Cyber Body (Thorax, Abdomen & Visor)
-      // ----------------------------------------------------
+      // ====================================================
+      // 5. Draw Spider Body (Aligned strictly with heading angle)
+      // Local +X = Forward (Head)
+      // Local -X = Backward (Abdomen)
+      // Local -Y = Left
+      // Local +Y = Right
+      // ====================================================
       ctx.save();
-      ctx.translate(spider.x, spider.y);
+      ctx.translate(spider.x, spider.y + spider.bodyBob);
       ctx.rotate(spider.angle);
 
-      // Subtle pulsating ambient glow aura under spider
-      const auraPulse = 0.25 + Math.sin(spider.pulse) * 0.12;
-      const gradient = ctx.createRadialGradient(0, 0, 4, 0, 0, 36);
-      gradient.addColorStop(0, `${accentColor}${auraPulse})`);
-      gradient.addColorStop(1, `${accentColor}0)`);
-      ctx.fillStyle = gradient;
+      // Ambient Cyber Core Glow
+      const corePulse = 0.14 + Math.sin(spider.idleTimer * 3) * 0.06;
+      const coreAura = ctx.createRadialGradient(-18, 0, 2, -18, 0, 36);
+      coreAura.addColorStop(0, isLight ? `rgba(10, 143, 92, ${corePulse})` : `rgba(57, 255, 140, ${corePulse})`);
+      coreAura.addColorStop(1, "transparent");
+      ctx.fillStyle = coreAura;
       ctx.beginPath();
-      ctx.arc(0, 0, 36, 0, Math.PI * 2);
+      ctx.arc(-18, 0, 36, 0, Math.PI * 2);
       ctx.fill();
 
-      // Rear Abdomen (Teardrop cyber shield)
+      // ----------------------------------------------------
+      // Opisthosoma (Posterior Abdomen - Large Egg/Teardrop at -X)
+      // ----------------------------------------------------
+      const abdomenX = -18;
+      const abdomenRadiusX = 15;
+      const abdomenRadiusY = 12;
+
       ctx.beginPath();
-      ctx.ellipse(-14, 0, 16, 11, 0, 0, Math.PI * 2);
-      ctx.fillStyle = bodyColor;
+      ctx.ellipse(abdomenX, 0, abdomenRadiusX, abdomenRadiusY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = chitinDark;
       ctx.fill();
-      ctx.strokeStyle = `${accentColor}0.5)`;
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = chitinLight;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      // Cyber telemetry circuit lines on abdomen
+      // Chitin Tergite Plates (Biological horizontal segments)
+      for (let s = 1; s <= 4; s++) {
+        const segX = abdomenX - 10 + s * 5;
+        const segH = abdomenRadiusY * Math.sin((s / 5) * Math.PI) * 0.95;
+        ctx.beginPath();
+        ctx.ellipse(segX, 0, 2.5, segH, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = isLight ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.06)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Abdomen Glowing Neural Reactor Core
       ctx.beginPath();
-      ctx.moveTo(-22, -4);
-      ctx.lineTo(-14, 0);
-      ctx.lineTo(-22, 4);
-      ctx.moveTo(-14, 0);
-      ctx.lineTo(-6, 0);
-      ctx.strokeStyle = `${accentColor}0.7)`;
+      ctx.ellipse(abdomenX + 2, 0, 6.5, 4, 0, 0, Math.PI * 2);
+      ctx.fillStyle = isLight ? "rgba(10, 143, 92, 0.28)" : "rgba(57, 255, 140, 0.32)";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(abdomenX + 2, 0, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = accent;
+      ctx.shadowColor = accent;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Rear Spinnerets (At the posterior tip, x = -32)
+      ctx.beginPath();
+      ctx.moveTo(abdomenX - abdomenRadiusX + 1, -2.5);
+      ctx.lineTo(abdomenX - abdomenRadiusX - 3.5, 0);
+      ctx.lineTo(abdomenX - abdomenRadiusX + 1, 2.5);
+      ctx.fillStyle = chitinLight;
+      ctx.fill();
+
+      // ----------------------------------------------------
+      // Pedicel (Narrow Waist Connecting Head and Abdomen)
+      // ----------------------------------------------------
+      ctx.beginPath();
+      ctx.rect(-4, -3, 5, 6);
+      ctx.fillStyle = chitinMid;
+      ctx.fill();
+      ctx.strokeStyle = chitinLight;
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Central Cephalothorax (Head & Core Chassis)
+      // ----------------------------------------------------
+      // Prosoma (Cephalothorax / Head Carapace at +X)
+      // ----------------------------------------------------
+      const headCenterX = 5;
+      const headRadiusX = 10;
+      const headRadiusY = 9.5;
+
       ctx.beginPath();
-      ctx.ellipse(3, 0, 10, 8.5, 0, 0, Math.PI * 2);
-      ctx.fillStyle = bodyHighlight;
+      ctx.ellipse(headCenterX, 0, headRadiusX, headRadiusY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = chitinMid;
       ctx.fill();
-      ctx.strokeStyle = isLight ? "#d1d9e0" : "#2a3e35";
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = chitinLight;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      // Glowing Reactor Core in Center
+      // Central Cephalic Fovea Indentation
       ctx.beginPath();
-      ctx.arc(0, 0, 3.2, 0, Math.PI * 2);
-      ctx.fillStyle = coreColor;
-      ctx.shadowColor = coreColor;
-      ctx.shadowBlur = 8;
-      ctx.fill();
-      ctx.shadowBlur = 0; // Reset blur
+      ctx.moveTo(headCenterX - 3, 0);
+      ctx.lineTo(headCenterX + 3, 0);
+      ctx.strokeStyle = chitinDark;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
 
-      // Front Scanning Eyes (Red Ocular Sensor Array)
-      const eyeOffsets = [
-        { x: 10, y: -3.5, r: 1.6 },
-        { x: 12, y: -1.2, r: 1.8 },
-        { x: 12, y: 1.2, r: 1.8 },
-        { x: 10, y: 3.5, r: 1.6 },
-      ];
+      // ----------------------------------------------------
+      // Pedipalps (Sensory Feelers projecting forward from head)
+      // ----------------------------------------------------
+      const palpWiggle = Math.sin(spider.pedipalpTimer) * 2;
+      const palpBaseX = headCenterX + 8;
+      const palpLeftY = -5;
+      const palpRightY = 5;
 
-      eyeOffsets.forEach((eye) => {
-        ctx.beginPath();
-        ctx.arc(eye.x, eye.y, eye.r, 0, Math.PI * 2);
-        ctx.fillStyle = eyeRed;
-        ctx.shadowColor = eyeRed;
-        ctx.shadowBlur = 5;
-        ctx.fill();
-      });
-      ctx.shadowBlur = 0;
-
-      // Front Chelicerae / Cyber Fangs
+      // Left Pedipalp
       ctx.beginPath();
-      ctx.moveTo(11, -3);
-      ctx.lineTo(16, -1.8);
-      ctx.lineTo(14, -0.5);
-      ctx.moveTo(11, 3);
-      ctx.lineTo(16, 1.8);
-      ctx.lineTo(14, 0.5);
-      ctx.strokeStyle = coreColor;
-      ctx.lineWidth = 1.2;
+      ctx.moveTo(palpBaseX, palpLeftY);
+      ctx.lineTo(palpBaseX + 8, palpLeftY - 3 + palpWiggle * 0.4);
+      ctx.lineTo(palpBaseX + 13, palpLeftY - 1 + palpWiggle);
+      ctx.strokeStyle = chitinLight;
+      ctx.lineWidth = 1.8;
       ctx.lineCap = "round";
       ctx.stroke();
 
+      ctx.beginPath();
+      ctx.arc(palpBaseX + 13, palpLeftY - 1 + palpWiggle, 1.3, 0, Math.PI * 2);
+      ctx.fillStyle = accent;
+      ctx.fill();
+
+      // Right Pedipalp
+      ctx.beginPath();
+      ctx.moveTo(palpBaseX, palpRightY);
+      ctx.lineTo(palpBaseX + 8, palpRightY + 3 - palpWiggle * 0.4);
+      ctx.lineTo(palpBaseX + 13, palpRightY + 1 - palpWiggle);
+      ctx.strokeStyle = chitinLight;
+      ctx.lineWidth = 1.8;
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(palpBaseX + 13, palpRightY + 1 - palpWiggle, 1.3, 0, Math.PI * 2);
+      ctx.fillStyle = accent;
+      ctx.fill();
+
+      // ----------------------------------------------------
+      // Chelicerae & Fangs (Projecting forward from mouth)
+      // ----------------------------------------------------
+      ctx.beginPath();
+      ctx.moveTo(headCenterX + headRadiusX - 1, -3);
+      ctx.lineTo(headCenterX + headRadiusX + 4.5, -1.8);
+      ctx.lineTo(headCenterX + headRadiusX + 2, -0.4);
+      ctx.moveTo(headCenterX + headRadiusX - 1, 3);
+      ctx.lineTo(headCenterX + headRadiusX + 4.5, 1.8);
+      ctx.lineTo(headCenterX + headRadiusX + 2, 0.4);
+      ctx.strokeStyle = chitinDark;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+
+      // ----------------------------------------------------
+      // True 8-Eye Ocular Turret (Facing forward towards +X)
+      // 2 Anterior Median Eyes (Large main red optics)
+      // 2 Anterior Lateral Eyes
+      // 2 Posterior Median Eyes
+      // 2 Posterior Lateral Eyes
+      // ----------------------------------------------------
+      const eyeBaseX = headCenterX + 6;
+
+      // Anterior Median Eyes (AME) - Big scanning red optics
+      ctx.beginPath();
+      ctx.arc(eyeBaseX + 2.6, -2.0, 1.7, 0, Math.PI * 2);
+      ctx.arc(eyeBaseX + 2.6, 2.0, 1.7, 0, Math.PI * 2);
+      ctx.fillStyle = ocularRed;
+      ctx.shadowColor = ocularRed;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Anterior Lateral Eyes (ALE)
+      ctx.beginPath();
+      ctx.arc(eyeBaseX + 1.6, -5.2, 1.2, 0, Math.PI * 2);
+      ctx.arc(eyeBaseX + 1.6, 5.2, 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = ocularRed;
+      ctx.fill();
+
+      // Posterior Median Eyes (PME)
+      ctx.beginPath();
+      ctx.arc(eyeBaseX - 1.4, -2.4, 1.1, 0, Math.PI * 2);
+      ctx.arc(eyeBaseX - 1.4, 2.4, 1.1, 0, Math.PI * 2);
+      ctx.fillStyle = accent;
+      ctx.fill();
+
+      // Posterior Lateral Eyes (PLE)
+      ctx.beginPath();
+      ctx.arc(eyeBaseX - 2.0, -5.5, 1.0, 0, Math.PI * 2);
+      ctx.arc(eyeBaseX - 2.0, 5.5, 1.0, 0, Math.PI * 2);
+      ctx.fillStyle = accent;
+      ctx.fill();
+
       ctx.restore();
 
-      animationFrameId = requestAnimationFrame(render);
+      animId = requestAnimationFrame(render);
     };
 
-    animationFrameId = requestAnimationFrame(render);
+    animId = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("scroll", onScroll);
     };
   }, [theme]);
 
