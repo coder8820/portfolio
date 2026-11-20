@@ -42,24 +42,40 @@ export default function CyberSpiderBackground() {
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
-    // Target position (driven by mouse & scroll)
+    // Dynamic scroll tracking: calculates scroll progress from 0 (top/Hero) to 1 (bottom/Footer)
+    const getMaxScroll = () =>
+      Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+
+    let targetScrollRatio = Math.min(1, Math.max(0, window.scrollY / getMaxScroll()));
+    let smoothScrollRatio = targetScrollRatio;
+    let lastScrollY = window.scrollY;
+    let scrollVelocity = 0;
+    let lastScrollTime = 0;
+
+    const isDesktopInit = width > 768;
+    const initialBaseX = isDesktopInit ? width * 0.78 : width * 0.84;
+    const initialStartY = Math.min(130, height * 0.2);
+    const initialEndY = Math.max(initialStartY + 100, height - 80);
+    const initialY = initialStartY + targetScrollRatio * (initialEndY - initialStartY);
+
+    // Target position (driven by scroll & mouse)
     const target = {
-      x: width * 0.72,
-      y: 160,
+      x: initialBaseX,
+      y: initialY,
       userActive: false,
-      lastInteractionTime: Date.now(),
+      lastInteractionTime: 0,
     };
 
     // Spider state
     const spider = {
-      x: width * 0.72,
-      y: 140,
+      x: initialBaseX,
+      y: initialY,
       vx: 0,
       vy: 0,
       angle: Math.PI / 2, // Facing downwards (+Y in screen space) initially
       angularVelocity: 0,
       speed: 0,
-      maxSpeed: 4.8,
+      baseMaxSpeed: 4.8,
       bodyBob: 0,
       walkCycle: 0,
       idleTimer: 0,
