@@ -157,31 +157,34 @@ export default function CyberSpiderBackground() {
 
     // Trailing cyber silk trail
     const silkTrail: SilkPoint[] = [];
-    const maxSilk = 45;
+    const maxSilk = 80;
 
     const onResize = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
+      targetScrollRatio = Math.min(1, Math.max(0, window.scrollY / getMaxScroll()));
     };
     window.addEventListener("resize", onResize);
 
     const onMouseMove = (e: MouseEvent) => {
-      target.x = e.clientX;
-      target.y = e.clientY;
-      target.userActive = true;
-      target.lastInteractionTime = Date.now();
+      // Mouse only commands spider when user is not actively scrolling
+      if (Date.now() - lastScrollTime > 800) {
+        target.x = e.clientX;
+        target.y = e.clientY;
+        target.userActive = true;
+        target.lastInteractionTime = Date.now();
+      }
     };
     window.addEventListener("mousemove", onMouseMove, { passive: true });
 
     const onScroll = () => {
-      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      const scrollRatio = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+      const currentScrollY = window.scrollY;
+      const deltaY = currentScrollY - lastScrollY;
+      scrollVelocity = deltaY;
+      lastScrollY = currentScrollY;
+      lastScrollTime = Date.now();
 
-      // As user scrolls, spider journeys down smoothly from Home to Footer
-      if (!target.userActive || Date.now() - target.lastInteractionTime > 2200) {
-        target.y = 120 + scrollRatio * (height - 240);
-        target.x = width * 0.5 + Math.sin(scrollRatio * Math.PI * 3.5) * (width * 0.38);
-      }
+      targetScrollRatio = Math.min(1, Math.max(0, currentScrollY / getMaxScroll()));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -202,23 +205,49 @@ export default function CyberSpiderBackground() {
       spider.idleTimer += 0.016;
       spider.pedipalpTimer += 0.09;
 
-      let tx = target.x;
-      let ty = target.y;
+      const now = Date.now();
+      const isActivelyScrolling = now - lastScrollTime < 1300;
 
-      // Autonomous wandering when mouse is idle
-      if (!target.userActive || Date.now() - target.lastInteractionTime > 3200) {
-        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-        const scrollRatio = Math.min(1, Math.max(0, window.scrollY / maxScroll));
-        const baseY = 130 + scrollRatio * (height - 260);
+      // Smooth lerp of scroll ratio so movement is liquid and organic
+      smoothScrollRatio += (targetScrollRatio - smoothScrollRatio) * 0.14;
 
-        tx =
-          width * 0.5 +
-          Math.sin(spider.idleTimer * 0.75) * (width * 0.36) +
-          Math.cos(spider.idleTimer * 0.35) * 70;
-        ty =
-          baseY +
-          Math.sin(spider.idleTimer * 1.1) * 85 +
-          Math.cos(spider.idleTimer * 0.5) * 45;
+      // Vertical progression: maps from top (Hero) all the way down to bottom (Footer)
+      const startY = Math.min(130, height * 0.2);
+      const endY = Math.max(startY + 100, height - 80);
+      const scrollYTarget = startY + smoothScrollRatio * (endY - startY);
+
+      // Horizontal path: keeps spider primarily on the right cyber perimeter/margin
+      const isDesktop = width > 768;
+      const baseX = isDesktop ? width * 0.78 : width * 0.84;
+      const weaveX = isDesktop
+        ? Math.sin(smoothScrollRatio * Math.PI * 3.5) * (width * 0.08)
+        : 0;
+      let scrollXTarget = baseX + weaveX;
+
+      // When reaching footer (smoothScrollRatio > 0.94), patrol along footer boundary
+      if (smoothScrollRatio > 0.94) {
+        const footerWave = Math.sin(spider.idleTimer * 1.3) * (isDesktop ? 110 : 35);
+        scrollXTarget = baseX + footerWave;
+      }
+
+      let tx = scrollXTarget;
+      let ty = scrollYTarget;
+
+      if (isActivelyScrolling) {
+        // SCROLL DRIVES SPIDER: Start walking along with the page to the footer
+        if (Math.abs(scrollVelocity) > 0.5) {
+          const leadY = Math.max(-60, Math.min(60, scrollVelocity * 1.3));
+          ty += leadY;
+          scrollVelocity *= 0.93;
+        }
+      } else if (target.userActive && now - target.lastInteractionTime < 2600) {
+        // Active mouse interaction when user paused scrolling
+        tx = target.x;
+        ty = target.y;
+      } else {
+        // Subtle ambient micro-wandering around current scroll section
+        tx = scrollXTarget + Math.sin(spider.idleTimer * 0.8) * 32;
+        ty = scrollYTarget + Math.cos(spider.idleTimer * 0.6) * 22;
       }
 
       // Compute vector to target
@@ -228,11 +257,16 @@ export default function CyberSpiderBackground() {
 
       // Alert stance when cursor is right near the spider
       const cursorDist = Math.hypot(target.x - spider.x, target.y - spider.y);
-      if (cursorDist < 85 && target.userActive) {
+      if (cursorDist < 85 && target.userActive && !isActivelyScrolling) {
         spider.alertLevel += (1 - spider.alertLevel) * 0.12;
       } else {
         spider.alertLevel += (0 - spider.alertLevel) * 0.06;
       }
+
+      // Dynamic max speed: speed boost when actively scrolling so spider swiftly accompanies scroll
+      const dynamicMaxSpeed = isActivelyScrolling
+        ? Math.min(8.5, spider.baseMaxSpeed + Math.min(4.0, Math.abs(scrollVelocity) * 0.15 + dist * 0.03))
+        : spider.baseMaxSpeed;
 
       // Smooth realistic orientation (head facing target)
       const targetAngle = Math.atan2(dy, dx);
@@ -240,27 +274,30 @@ export default function CyberSpiderBackground() {
       while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
       while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
 
-      spider.angularVelocity = angleDiff * 0.075;
+      spider.angularVelocity = angleDiff * (isActivelyScrolling ? 0.13 : 0.075);
       spider.angle += spider.angularVelocity;
 
       // Crawling velocity (accelerates smoothly, slows when near target)
-      const desiredSpeed = dist > 22 ? Math.min(spider.maxSpeed, Math.max(0.6, dist * 0.04)) : 0;
-      spider.speed += (desiredSpeed - spider.speed) * 0.09;
+      const minMoveDist = isActivelyScrolling ? 8 : 18;
+      const desiredSpeed = dist > minMoveDist
+        ? Math.min(dynamicMaxSpeed, Math.max(0.8, dist * 0.05))
+        : 0;
+      spider.speed += (desiredSpeed - spider.speed) * (isActivelyScrolling ? 0.15 : 0.09);
 
-      if (dist > 18) {
+      if (dist > minMoveDist * 0.7) {
         spider.vx = Math.cos(spider.angle) * spider.speed;
         spider.vy = Math.sin(spider.angle) * spider.speed;
       } else {
-        spider.vx *= 0.85;
-        spider.vy *= 0.85;
+        spider.vx *= 0.82;
+        spider.vy *= 0.82;
       }
 
       spider.x += spider.vx;
       spider.y += spider.vy;
 
       // Keep within screen bounds
-      spider.x = Math.max(50, Math.min(width - 50, spider.x));
-      spider.y = Math.max(50, Math.min(height - 50, spider.y));
+      spider.x = Math.max(45, Math.min(width - 45, spider.x));
+      spider.y = Math.max(45, Math.min(height - 45, spider.y));
 
       // Body bobbing cadence with step cycle
       if (spider.speed > 0.3) {
@@ -274,11 +311,13 @@ export default function CyberSpiderBackground() {
       const spinneretX = spider.x - Math.cos(spider.angle) * 32;
       const spinneretY = spider.y - Math.sin(spider.angle) * 32;
 
-      if (Math.hypot(spider.vx, spider.vy) > 0.4 || silkTrail.length === 0) {
-        if (
-          silkTrail.length === 0 ||
-          Math.hypot(spinneretX - silkTrail[silkTrail.length - 1].x, spinneretY - silkTrail[silkTrail.length - 1].y) > 16
-        ) {
+      if (silkTrail.length === 0) {
+        silkTrail.push({ x: spider.x, y: 0, alpha: 1 });
+      }
+
+      if (Math.hypot(spider.vx, spider.vy) > 0.35) {
+        const lastPt = silkTrail[silkTrail.length - 1];
+        if (Math.hypot(spinneretX - lastPt.x, spinneretY - lastPt.y) > 13) {
           silkTrail.push({ x: spinneretX, y: spinneretY, alpha: 1 });
           if (silkTrail.length > maxSilk) {
             silkTrail.shift();
@@ -288,9 +327,9 @@ export default function CyberSpiderBackground() {
 
       // Fade out silk
       for (let i = 0; i < silkTrail.length; i++) {
-        silkTrail[i].alpha -= 0.0035;
+        silkTrail[i].alpha -= isActivelyScrolling ? 0.0018 : 0.0035;
       }
-      while (silkTrail.length > 0 && silkTrail[0].alpha <= 0) {
+      while (silkTrail.length > 1 && silkTrail[0].alpha <= 0) {
         silkTrail.shift();
       }
 
@@ -326,7 +365,7 @@ export default function CyberSpiderBackground() {
       // Set A: L0, R1, L2, R3
       // Set B: R0, L1, R2, L3
       // ====================================================
-      gaitClock += spider.speed * 0.07 + 0.018;
+      gaitClock += spider.speed * 0.075 + (isActivelyScrolling ? 0.035 : 0.018);
 
       legs.forEach((leg) => {
         // Compute current hip position in world space
@@ -361,7 +400,8 @@ export default function CyberSpiderBackground() {
 
         // Animate parabolic stepping arc
         if (leg.isStepping) {
-          leg.stepProgress += 0.16;
+          const stepSpeed = 0.16 + (spider.speed / dynamicMaxSpeed) * 0.09;
+          leg.stepProgress += stepSpeed;
           if (leg.stepProgress >= 1) {
             leg.isStepping = false;
             leg.footX = leg.targetFootX;
